@@ -1,0 +1,23 @@
+# dependencies and build output
+node_modules/
+dist/
+dist-artifact/
+test-results/
+playwright-report/
+art-generated/
+
+# private or large source material — never publish
+silabus/
+download/
+ChatGPT Image *.png
+*.jpeg
+*.jpg
+
+# secrets and local tool settings
+.mcp.json
+.claude/
+.env
+.env.*
+
+# OS files
+.DS_Store

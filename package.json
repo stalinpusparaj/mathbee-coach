@@ -1,0 +1,36 @@
+{
+  "name": "mathbee-coach",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MathBee Coach \u2014 My Number Garden: offline early-primary maths practice game",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "assets": "python3 tools/extract_assets.py",
+    "docs:coverage": "vitest run --config vitest.docs.config.ts",
+    "art:generate": "node tools/generate_art.mjs",
+    "art:process": "python3 tools/process_generated.py",
+    "art:prompts": "node tools/export_prompts.mjs",
+    "build:artifact": "tsc -p tsconfig.json --noEmit && vite build --mode artifact && node tools/make_artifact.mjs"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  }
+}

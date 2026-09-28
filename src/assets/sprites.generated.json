@@ -1,0 +1,1234 @@
+[
+ {
+  "id": "pot_terracotta",
+  "file": "assets/sprites/pot_terracotta.webp",
+  "width": 351,
+  "height": 333,
+  "alt": "Terracotta flowerpot",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   93,
+   121,
+   351,
+   333
+  ]
+ },
+ {
+  "id": "pot_green",
+  "file": "assets/sprites/pot_green.webp",
+  "width": 360,
+  "height": 325,
+  "alt": "Green ribbed flowerpot",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   910,
+   124,
+   368,
+   332
+  ]
+ },
+ {
+  "id": "pot_cream",
+  "file": "assets/sprites/pot_cream.webp",
+  "width": 360,
+  "height": 318,
+  "alt": "Cream flowerpot with leaves",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   491,
+   127,
+   370,
+   327
+  ]
+ },
+ {
+  "id": "bee",
+  "file": "assets/sprites/bee.webp",
+  "width": 234,
+  "height": 221,
+  "alt": "Bee, the friendly garden guide",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   1254,
+   366,
+   234,
+   221
+  ]
+ },
+ {
+  "id": "flower_potted",
+  "file": "assets/sprites/flower_potted.webp",
+  "width": 294,
+  "height": 360,
+  "alt": "Yellow flower with roots",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   364,
+   462,
+   382,
+   468
+  ]
+ },
+ {
+  "id": "seedling",
+  "file": "assets/sprites/seedling.webp",
+  "width": 243,
+  "height": 360,
+  "alt": "Seedling with roots",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   58,
+   489,
+   296,
+   439
+  ]
+ },
+ {
+  "id": "watering_can",
+  "file": "assets/sprites/watering_can.webp",
+  "width": 360,
+  "height": 296,
+  "alt": "Yellow watering can",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   762,
+   542,
+   452,
+   372
+  ]
+ },
+ {
+  "id": "glove",
+  "file": "assets/sprites/glove.webp",
+  "width": 234,
+  "height": 312,
+  "alt": "Garden glove",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_34 PM-1.png",
+  "sourceRect": [
+   1225,
+   612,
+   234,
+   312
+  ]
+ },
+ {
+  "id": "post",
+  "file": "assets/sprites/post.webp",
+  "width": 224,
+  "height": 360,
+  "alt": "Wooden post with rope",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   656,
+   61,
+   271,
+   435
+  ]
+ },
+ {
+  "id": "rope_fence",
+  "file": "assets/sprites/rope_fence.webp",
+  "width": 360,
+  "height": 149,
+  "alt": "Rope fence",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   959,
+   177,
+   525,
+   217
+  ]
+ },
+ {
+  "id": "plank",
+  "file": "assets/sprites/plank.webp",
+  "width": 360,
+  "height": 91,
+  "alt": "Wooden plank",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   36,
+   216,
+   612,
+   154
+  ]
+ },
+ {
+  "id": "flag",
+  "file": "assets/sprites/flag.webp",
+  "width": 187,
+  "height": 360,
+  "alt": "Yellow flag",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   1305,
+   493,
+   226,
+   434
+  ]
+ },
+ {
+  "id": "beaver",
+  "file": "assets/sprites/beaver.webp",
+  "width": 292,
+  "height": 360,
+  "alt": "Beaver builder",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   740,
+   500,
+   364,
+   449
+  ]
+ },
+ {
+  "id": "riverbank",
+  "file": "assets/sprites/riverbank.webp",
+  "width": 360,
+  "height": 277,
+  "alt": "Grassy riverbank",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   9,
+   544,
+   506,
+   390
+  ]
+ },
+ {
+  "id": "rock",
+  "file": "assets/sprites/rock.webp",
+  "width": 256,
+  "height": 163,
+  "alt": "Mossy rock",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   519,
+   682,
+   256,
+   163
+  ]
+ },
+ {
+  "id": "toolbox",
+  "file": "assets/sprites/toolbox.webp",
+  "width": 244,
+  "height": 230,
+  "alt": "Toolbox",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_35 PM-2.png",
+  "sourceRect": [
+   1068,
+   713,
+   244,
+   230
+  ]
+ },
+ {
+  "id": "workshop",
+  "file": "assets/sprites/workshop.webp",
+  "width": 360,
+  "height": 277,
+  "alt": "Shape workshop cottage",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   39,
+   17,
+   669,
+   514
+  ]
+ },
+ {
+  "id": "workbench",
+  "file": "assets/sprites/workbench.webp",
+  "width": 360,
+  "height": 160,
+  "alt": "Workbench",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   753,
+   203,
+   744,
+   330
+  ]
+ },
+ {
+  "id": "hedgehog",
+  "file": "assets/sprites/hedgehog.webp",
+  "width": 270,
+  "height": 360,
+  "alt": "Hedgehog helper",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   36,
+   537,
+   333,
+   444
+  ]
+ },
+ {
+  "id": "brush",
+  "file": "assets/sprites/brush.webp",
+  "width": 266,
+  "height": 252,
+  "alt": "Paint brush",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   793,
+   544,
+   266,
+   252
+  ]
+ },
+ {
+  "id": "mallet",
+  "file": "assets/sprites/mallet.webp",
+  "width": 229,
+  "height": 263,
+  "alt": "Wooden mallet",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   469,
+   552,
+   229,
+   263
+  ]
+ },
+ {
+  "id": "rosette",
+  "file": "assets/sprites/rosette.webp",
+  "width": 251,
+  "height": 360,
+  "alt": "Yellow rosette",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   1234,
+   580,
+   278,
+   399
+  ]
+ },
+ {
+  "id": "scroll",
+  "file": "assets/sprites/scroll.webp",
+  "width": 306,
+  "height": 233,
+  "alt": "Paper scroll",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   894,
+   749,
+   306,
+   233
+  ]
+ },
+ {
+  "id": "tray",
+  "file": "assets/sprites/tray.webp",
+  "width": 360,
+  "height": 125,
+  "alt": "Wooden tray",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_36 PM-3.png",
+  "sourceRect": [
+   414,
+   828,
+   436,
+   151
+  ]
+ },
+ {
+  "id": "paper_cone",
+  "file": "assets/sprites/paper_cone.webp",
+  "width": 258,
+  "height": 360,
+  "alt": "Paper bouquet wrap",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   873,
+   44,
+   353,
+   493
+  ]
+ },
+ {
+  "id": "tulip",
+  "file": "assets/sprites/tulip.webp",
+  "width": 163,
+  "height": 360,
+  "alt": "Pink tulip",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   352,
+   67,
+   208,
+   458
+  ]
+ },
+ {
+  "id": "rose",
+  "file": "assets/sprites/rose.webp",
+  "width": 223,
+  "height": 360,
+  "alt": "Red rose",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   29,
+   69,
+   285,
+   461
+  ]
+ },
+ {
+  "id": "daisy",
+  "file": "assets/sprites/daisy.webp",
+  "width": 210,
+  "height": 360,
+  "alt": "Yellow daisy",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   587,
+   77,
+   263,
+   450
+  ]
+ },
+ {
+  "id": "bow",
+  "file": "assets/sprites/bow.webp",
+  "width": 312,
+  "height": 297,
+  "alt": "Red bow",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   1206,
+   257,
+   312,
+   297
+  ]
+ },
+ {
+  "id": "bunny_florist",
+  "file": "assets/sprites/bunny_florist.webp",
+  "width": 247,
+  "height": 360,
+  "alt": "Bunny florist",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   414,
+   438,
+   366,
+   534
+  ]
+ },
+ {
+  "id": "shop_counter",
+  "file": "assets/sprites/shop_counter.webp",
+  "width": 360,
+  "height": 190,
+  "alt": "Shop counter",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   808,
+   597,
+   695,
+   367
+  ]
+ },
+ {
+  "id": "bucket",
+  "file": "assets/sprites/bucket.webp",
+  "width": 355,
+  "height": 348,
+  "alt": "Metal bucket",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_37 PM-4.png",
+  "sourceRect": [
+   45,
+   616,
+   355,
+   348
+  ]
+ },
+ {
+  "id": "pear",
+  "file": "assets/sprites/pear.webp",
+  "width": 243,
+  "height": 360,
+  "alt": "Pear",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   817,
+   62,
+   262,
+   388
+  ]
+ },
+ {
+  "id": "apple_red",
+  "file": "assets/sprites/apple_red.webp",
+  "width": 315,
+  "height": 341,
+  "alt": "Red apple",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   50,
+   93,
+   315,
+   341
+  ]
+ },
+ {
+  "id": "apple_green",
+  "file": "assets/sprites/apple_green.webp",
+  "width": 316,
+  "height": 346,
+  "alt": "Green apple",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   435,
+   94,
+   316,
+   346
+  ]
+ },
+ {
+  "id": "orange",
+  "file": "assets/sprites/orange.webp",
+  "width": 350,
+  "height": 336,
+  "alt": "Orange",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   1139,
+   109,
+   350,
+   336
+  ]
+ },
+ {
+  "id": "squirrel_gardener",
+  "file": "assets/sprites/squirrel_gardener.webp",
+  "width": 250,
+  "height": 360,
+  "alt": "Squirrel gardener",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   841,
+   470,
+   332,
+   478
+  ]
+ },
+ {
+  "id": "basket",
+  "file": "assets/sprites/basket.webp",
+  "width": 325,
+  "height": 360,
+  "alt": "Wicker basket",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   8,
+   492,
+   391,
+   433
+  ]
+ },
+ {
+  "id": "cart",
+  "file": "assets/sprites/cart.webp",
+  "width": 341,
+  "height": 360,
+  "alt": "Wooden cart",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   1147,
+   534,
+   385,
+   407
+  ]
+ },
+ {
+  "id": "crate",
+  "file": "assets/sprites/crate.webp",
+  "width": 360,
+  "height": 308,
+  "alt": "Wooden crate",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_38 PM-5.png",
+  "sourceRect": [
+   409,
+   575,
+   430,
+   368
+  ]
+ },
+ {
+  "id": "penguin_walk",
+  "file": "assets/sprites/penguin_walk.webp",
+  "width": 286,
+  "height": 360,
+  "alt": "Penguin walking",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   346,
+   110,
+   300,
+   377
+  ]
+ },
+ {
+  "id": "penguin",
+  "file": "assets/sprites/penguin.webp",
+  "width": 290,
+  "height": 360,
+  "alt": "Penguin",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   39,
+   115,
+   297,
+   369
+  ]
+ },
+ {
+  "id": "penguin_wave",
+  "file": "assets/sprites/penguin_wave.webp",
+  "width": 311,
+  "height": 360,
+  "alt": "Penguin waving",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   713,
+   118,
+   316,
+   366
+  ]
+ },
+ {
+  "id": "boat",
+  "file": "assets/sprites/boat.webp",
+  "width": 360,
+  "height": 247,
+  "alt": "Rowing boat",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   1057,
+   143,
+   454,
+   312
+  ]
+ },
+ {
+  "id": "lighthouse",
+  "file": "assets/sprites/lighthouse.webp",
+  "width": 226,
+  "height": 360,
+  "alt": "Lighthouse",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   1033,
+   458,
+   296,
+   471
+  ]
+ },
+ {
+  "id": "dock",
+  "file": "assets/sprites/dock.webp",
+  "width": 360,
+  "height": 286,
+  "alt": "Small dock",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   628,
+   592,
+   397,
+   315
+  ]
+ },
+ {
+  "id": "ice_floe",
+  "file": "assets/sprites/ice_floe.webp",
+  "width": 360,
+  "height": 189,
+  "alt": "Ice island",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   23,
+   605,
+   574,
+   302
+  ]
+ },
+ {
+  "id": "lifebuoy",
+  "file": "assets/sprites/lifebuoy.webp",
+  "width": 238,
+  "height": 246,
+  "alt": "Lifebuoy",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_40 PM-6.png",
+  "sourceRect": [
+   1292,
+   626,
+   238,
+   246
+  ]
+ },
+ {
+  "id": "sign_board",
+  "file": "assets/sprites/sign_board.webp",
+  "width": 360,
+  "height": 307,
+  "alt": "Wooden sign board",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   564,
+   97,
+   405,
+   345
+  ]
+ },
+ {
+  "id": "lily_pad",
+  "file": "assets/sprites/lily_pad.webp",
+  "width": 360,
+  "height": 244,
+  "alt": "Lily pad",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   1012,
+   111,
+   497,
+   337
+  ]
+ },
+ {
+  "id": "stepping_stone",
+  "file": "assets/sprites/stepping_stone.webp",
+  "width": 360,
+  "height": 219,
+  "alt": "Stepping stone",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   31,
+   128,
+   501,
+   305
+  ]
+ },
+ {
+  "id": "cattails",
+  "file": "assets/sprites/cattails.webp",
+  "width": 277,
+  "height": 360,
+  "alt": "Cattails",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   363,
+   468,
+   350,
+   455
+  ]
+ },
+ {
+  "id": "gate",
+  "file": "assets/sprites/gate.webp",
+  "width": 360,
+  "height": 285,
+  "alt": "Garden gate",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   720,
+   525,
+   487,
+   385
+  ]
+ },
+ {
+  "id": "firefly",
+  "file": "assets/sprites/firefly.webp",
+  "width": 305,
+  "height": 318,
+  "alt": "Firefly",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   1212,
+   573,
+   305,
+   318
+  ]
+ },
+ {
+  "id": "frog",
+  "file": "assets/sprites/frog.webp",
+  "width": 295,
+  "height": 287,
+  "alt": "Frog",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_41 PM-7.png",
+  "sourceRect": [
+   45,
+   606,
+   295,
+   287
+  ]
+ },
+ {
+  "id": "trowel",
+  "file": "assets/sprites/trowel.webp",
+  "width": 232,
+  "height": 360,
+  "alt": "Trowel",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   438,
+   106,
+   238,
+   370
+  ]
+ },
+ {
+  "id": "picnic_basket",
+  "file": "assets/sprites/picnic_basket.webp",
+  "width": 360,
+  "height": 335,
+  "alt": "Picnic basket",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   664,
+   125,
+   373,
+   347
+  ]
+ },
+ {
+  "id": "watering_can_flowers",
+  "file": "assets/sprites/watering_can_flowers.webp",
+  "width": 360,
+  "height": 257,
+  "alt": "Flowery watering can",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   13,
+   139,
+   458,
+   327
+  ]
+ },
+ {
+  "id": "book",
+  "file": "assets/sprites/book.webp",
+  "width": 360,
+  "height": 250,
+  "alt": "Open book",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   1044,
+   140,
+   480,
+   333
+  ]
+ },
+ {
+  "id": "chair",
+  "file": "assets/sprites/chair.webp",
+  "width": 338,
+  "height": 360,
+  "alt": "Garden chair",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   16,
+   491,
+   393,
+   418
+  ]
+ },
+ {
+  "id": "seed_packet",
+  "file": "assets/sprites/seed_packet.webp",
+  "width": 253,
+  "height": 353,
+  "alt": "Seed packet",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   426,
+   538,
+   253,
+   353
+  ]
+ },
+ {
+  "id": "card_frame",
+  "file": "assets/sprites/card_frame.webp",
+  "width": 360,
+  "height": 297,
+  "alt": "Blank card",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   1126,
+   541,
+   400,
+   330
+  ]
+ },
+ {
+  "id": "bunny_sleeping",
+  "file": "assets/sprites/bunny_sleeping.webp",
+  "width": 360,
+  "height": 288,
+  "alt": "Sleeping bunny",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_42 PM-8.png",
+  "sourceRect": [
+   693,
+   558,
+   432,
+   346
+  ]
+ },
+ {
+  "id": "clock_tower",
+  "file": "assets/sprites/clock_tower.webp",
+  "width": 188,
+  "height": 360,
+  "alt": "Clock tower",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   18,
+   13,
+   516,
+   988
+  ]
+ },
+ {
+  "id": "round_frame",
+  "file": "assets/sprites/round_frame.webp",
+  "width": 347,
+  "height": 360,
+  "alt": "Round frame",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   563,
+   118,
+   495,
+   513
+  ]
+ },
+ {
+  "id": "owl_keeper",
+  "file": "assets/sprites/owl_keeper.webp",
+  "width": 307,
+  "height": 360,
+  "alt": "Owl clock keeper",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   1096,
+   181,
+   426,
+   500
+  ]
+ },
+ {
+  "id": "bell",
+  "file": "assets/sprites/bell.webp",
+  "width": 232,
+  "height": 283,
+  "alt": "Bell",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   505,
+   692,
+   232,
+   283
+  ]
+ },
+ {
+  "id": "gear",
+  "file": "assets/sprites/gear.webp",
+  "width": 244,
+  "height": 250,
+  "alt": "Gear",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   926,
+   723,
+   244,
+   250
+  ]
+ },
+ {
+  "id": "key",
+  "file": "assets/sprites/key.webp",
+  "width": 227,
+  "height": 243,
+  "alt": "Wind-up key",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   706,
+   724,
+   227,
+   243
+  ]
+ },
+ {
+  "id": "sun",
+  "file": "assets/sprites/sun.webp",
+  "width": 219,
+  "height": 221,
+  "alt": "Smiling sun",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   1168,
+   753,
+   219,
+   221
+  ]
+ },
+ {
+  "id": "moon",
+  "file": "assets/sprites/moon.webp",
+  "width": 155,
+  "height": 197,
+  "alt": "Sleeping moon",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_44 PM-9.png",
+  "sourceRect": [
+   1364,
+   762,
+   155,
+   197
+  ]
+ },
+ {
+  "id": "calendar_easel",
+  "file": "assets/sprites/calendar_easel.webp",
+  "width": 355,
+  "height": 360,
+  "alt": "Blank calendar easel",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   22,
+   17,
+   440,
+   446
+  ]
+ },
+ {
+  "id": "lantern",
+  "file": "assets/sprites/lantern.webp",
+  "width": 205,
+  "height": 360,
+  "alt": "Lantern",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   1259,
+   18,
+   258,
+   452
+  ]
+ },
+ {
+  "id": "bunting",
+  "file": "assets/sprites/bunting.webp",
+  "width": 360,
+  "height": 197,
+  "alt": "Bunting",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   800,
+   98,
+   482,
+   264
+  ]
+ },
+ {
+  "id": "gift",
+  "file": "assets/sprites/gift.webp",
+  "width": 327,
+  "height": 349,
+  "alt": "Gift box",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   478,
+   120,
+   327,
+   349
+  ]
+ },
+ {
+  "id": "squirrel_messenger",
+  "file": "assets/sprites/squirrel_messenger.webp",
+  "width": 307,
+  "height": 360,
+  "alt": "Squirrel with a card",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   13,
+   450,
+   425,
+   498
+  ]
+ },
+ {
+  "id": "notice_board",
+  "file": "assets/sprites/notice_board.webp",
+  "width": 287,
+  "height": 360,
+  "alt": "Notice board",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   822,
+   465,
+   379,
+   475
+  ]
+ },
+ {
+  "id": "wreath",
+  "file": "assets/sprites/wreath.webp",
+  "width": 314,
+  "height": 360,
+  "alt": "Flower wreath",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   448,
+   516,
+   365,
+   419
+  ]
+ },
+ {
+  "id": "picnic_hamper",
+  "file": "assets/sprites/picnic_hamper.webp",
+  "width": 329,
+  "height": 356,
+  "alt": "Picnic hamper",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_45 PM-10.png",
+  "sourceRect": [
+   1201,
+   565,
+   329,
+   356
+  ]
+ },
+ {
+  "id": "apple",
+  "file": "assets/sprites/apple.webp",
+  "width": 299,
+  "height": 349,
+  "alt": "Apple",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   24,
+   53,
+   299,
+   349
+  ]
+ },
+ {
+  "id": "coconut",
+  "file": "assets/sprites/coconut.webp",
+  "width": 342,
+  "height": 348,
+  "alt": "Coconut",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   815,
+   73,
+   342,
+   348
+  ]
+ },
+ {
+  "id": "bluebird",
+  "file": "assets/sprites/bluebird.webp",
+  "width": 321,
+  "height": 326,
+  "alt": "Bluebird",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   1179,
+   86,
+   321,
+   326
+  ]
+ },
+ {
+  "id": "chocolate",
+  "file": "assets/sprites/chocolate.webp",
+  "width": 360,
+  "height": 224,
+  "alt": "Chocolate",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   382,
+   122,
+   417,
+   259
+  ]
+ },
+ {
+  "id": "rabbit_helper",
+  "file": "assets/sprites/rabbit_helper.webp",
+  "width": 179,
+  "height": 360,
+  "alt": "Rabbit helper",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   794,
+   414,
+   283,
+   569
+  ]
+ },
+ {
+  "id": "help_desk_stall",
+  "file": "assets/sprites/help_desk_stall.webp",
+  "width": 311,
+  "height": 360,
+  "alt": "Help desk stall",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   1091,
+   437,
+   439,
+   508
+  ]
+ },
+ {
+  "id": "basket_tall",
+  "file": "assets/sprites/basket_tall.webp",
+  "width": 328,
+  "height": 360,
+  "alt": "Tall basket",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   445,
+   550,
+   357,
+   392
+  ]
+ },
+ {
+  "id": "choc_box",
+  "file": "assets/sprites/choc_box.webp",
+  "width": 360,
+  "height": 265,
+  "alt": "Empty chocolate box",
+  "source": "ChatGPT Image Sep 27, 2026, 07_19_47 PM-11.png",
+  "sourceRect": [
+   4,
+   614,
+   434,
+   320
+  ]
+ },
+ {
+  "id": "garden_scenery",
+  "file": "assets/garden_scenery.webp",
+  "width": 1020,
+  "height": 645,
+  "alt": "",
+  "source": "ChatGPT_Image_Sep_27,_2026,_20260927194655.jpg",
+  "sourceRect": [
+   470,
+   95,
+   1020,
+   645
+  ]
+ }
+]

@@ -1,0 +1,9 @@
+{
+  "name": "MathBee Coach — My Number Garden",
+  "short_name": "MathBee",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFF8E8",
+  "theme_color": "#F7BF35",
+  "icons": [{ "src": "/assets/sprites/bee.webp", "sizes": "any", "type": "image/webp" }]
+}

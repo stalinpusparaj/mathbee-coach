@@ -1,0 +1,45 @@
+{
+  "style": "Warm storybook 2D children's picture-book illustration, soft painterly texture, gentle rounded shapes, warm honey-yellow, leaf-green, sky-blue and cream palette, soft even lighting, friendly and calm. Absolutely no text, letters, numbers, digits, logos, signatures, watermarks, UI buttons or frames.",
+  "spriteRule": "Draw exactly ONE subject, whole and centred, filling about 80% of a square canvas, with a completely flat solid pure magenta background (#FF00FF) and no shadow on the background. Do not use magenta or purple anywhere on the subject.",
+  "backgroundRule": "This is a background scene only. Keep the centre area calm, open and uncluttered (soft grass or sky), with detail only around the edges. No characters, no animals, no fruit or flowers that could be counted in the centre.",
+  "assets": [
+    { "id": "bg_welcome", "kind": "background", "aspect": "16:9", "alt": "", "prompt": "A sunny storybook flower garden panorama with winding paths, a small pond with lily pads, a clock tower far away, fruit trees at the far left and right edges, soft hills and blue sky." },
+    { "id": "bg_map_wide", "kind": "background", "aspect": "16:9", "alt": "", "prompt": "A top-down storybook garden map seen from above: soft green lawn, winding sandy paths connecting many small empty grassy clearings, a small pond in the middle, bushes and flowers only along the outer border." },
+    { "id": "bg_map_tall", "kind": "background", "aspect": "9:16", "alt": "", "prompt": "A tall top-down storybook garden map seen from above: soft green lawn, winding sandy paths connecting many small empty grassy clearings, a small pond in the middle, bushes and flowers only along the outer border." },
+
+    { "id": "banner_C01", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm meadow strip with a few big flowers at the far left and far right edges and bees in the distance." },
+    { "id": "banner_C02", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm riverside strip with a small wooden dock at the far left and a little ferry boat at the far right, gentle water." },
+    { "id": "banner_C03", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm bird sanctuary strip: a leafy tree at the far left, a quiet pond with reeds at the far right." },
+    { "id": "banner_C04", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm greenhouse strip with wooden shelves at the far left and far right edges, soft light through glass." },
+    { "id": "banner_C05", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm strip of a gentle stream between two grassy banks, a pile of wooden planks at the far left edge." },
+    { "id": "banner_C06", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm cosy wooden workshop strip, a workbench at the far left and tool shelves at the far right." },
+    { "id": "banner_C07", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm flower shop strip, buckets of flowers at the far left and far right edges, wooden counter." },
+    { "id": "banner_C08", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm orchard strip with fruit trees only at the far left and far right edges and an empty grassy middle." },
+    { "id": "banner_C09", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm icy harbour strip, a lighthouse at the far right, gentle blue sea and snowy shore." },
+    { "id": "banner_C10", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm forest path strip with flat round stepping stones across a shallow brook, ferns at the edges." },
+    { "id": "banner_C11", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm garden shed strip with a blank wooden notice board on the wall and watering cans at the edges." },
+    { "id": "banner_C12", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm strip of a storybook clock tower seen from a distance at the far right, garden and sky; the clock face is blank with no numbers and no hands." },
+    { "id": "banner_C13", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm festival garden strip with bunting and lanterns only at the edges, soft evening light." },
+    { "id": "banner_C14", "kind": "banner", "aspect": "21:9", "alt": "", "prompt": "A wide calm village garden strip with a small wooden help-desk stall at the far left and flowers at the far right." },
+
+    { "id": "bee_celebrate", "kind": "sprite", "aspect": "1:1", "alt": "Bee celebrating", "reference": "public/assets/sprites/bee.webp", "prompt": "The SAME bee character as in the reference image (same face, colours, stripes and wings), cheering happily with both arms up." },
+    { "id": "bee_think", "kind": "sprite", "aspect": "1:1", "alt": "Bee thinking", "reference": "public/assets/sprites/bee.webp", "prompt": "The SAME bee character as in the reference image (same face, colours, stripes and wings), thinking with one hand on its chin." },
+    { "id": "bee_point", "kind": "sprite", "aspect": "1:1", "alt": "Bee pointing", "reference": "public/assets/sprites/bee.webp", "prompt": "The SAME bee character as in the reference image (same face, colours, stripes and wings), pointing to the right as if showing something." },
+
+    { "id": "bird_owl", "kind": "sprite", "aspect": "1:1", "alt": "Owl", "prompt": "A realistic-proportioned but cute brown owl standing, big round eyes, ear tufts, no clothes, side-by-front view, easy to recognise as an owl." },
+    { "id": "bird_swan", "kind": "sprite", "aspect": "1:1", "alt": "Swan", "prompt": "A white swan floating, long curved S-shaped neck, orange beak, no clothes, side view, easy to recognise as a swan." },
+    { "id": "bird_parrot", "kind": "sprite", "aspect": "1:1", "alt": "Parrot", "prompt": "A bright green parrot perched, hooked curved beak, long tail feathers, a touch of red and yellow, no clothes, side view, easy to recognise as a parrot." },
+    { "id": "bird_ostrich", "kind": "sprite", "aspect": "1:1", "alt": "Ostrich", "prompt": "A whole ostrich standing, very long legs and long neck, black and white body feathers, no clothes, side view, easy to recognise as an ostrich." },
+    { "id": "bird_rooster", "kind": "sprite", "aspect": "1:1", "alt": "Rooster", "prompt": "A rooster (cock) standing, big red comb and wattle, arched colourful tail feathers, no clothes, side view, easy to recognise as a rooster." },
+    { "id": "bird_crow", "kind": "sprite", "aspect": "1:1", "alt": "Crow", "prompt": "A small black crow standing, grey beak, no clothes, side view." },
+    { "id": "bird_penguin", "kind": "sprite", "aspect": "1:1", "alt": "Penguin", "prompt": "A small black-and-white penguin standing upright, orange feet, no scarf, no clothes, front view." },
+    { "id": "turtle", "kind": "sprite", "aspect": "1:1", "alt": "Turtle", "prompt": "A friendly green turtle walking, brown patterned shell, side view." },
+
+    { "id": "garden_fountain", "kind": "sprite", "aspect": "1:1", "alt": "Fountain", "prompt": "A small round stone garden fountain with water." },
+    { "id": "garden_birdhouse", "kind": "sprite", "aspect": "1:1", "alt": "Birdhouse", "prompt": "A small wooden birdhouse on a post with a green roof." },
+    { "id": "garden_arch", "kind": "sprite", "aspect": "1:1", "alt": "Flower arch", "prompt": "A small garden arch covered in pink and yellow flowers." },
+    { "id": "garden_butterflies", "kind": "sprite", "aspect": "1:1", "alt": "Butterflies", "prompt": "Three colourful butterflies flying together." },
+
+    { "id": "reward_badge", "kind": "sprite", "aspect": "1:1", "alt": "Honey pot", "prompt": "A shiny honey pot overflowing with golden honey, a honey dipper beside it." }
+  ]
+}
