@@ -723,3 +723,62 @@ td.status.not-assessed { color: var(--ink-soft); }
   .loc3d .loc-name { font-size: 0.6rem; }
   .loc3d .blooms { display: none; }
 }
+
+/* ---------- fun: hats, combos, quests, gifts, collections ---------- */
+.hat-bee { position: relative; display: inline-flex; flex: none; }
+.bee-hat { position: absolute; left: 30%; top: -18%; line-height: 1; transform: translateX(-50%) rotate(-12deg); pointer-events: none; filter: drop-shadow(0 1px 1px rgba(0,0,0,.2)); }
+.jl-bee-inner { position: relative; }
+.jl-bee-inner .bee-hat { font-size: 20px; }
+
+.progress-group { display: inline-flex; align-items: center; gap: 6px; }
+.combo-chip {
+  font-weight: 900; font-size: 0.85rem; padding: 3px 10px; border-radius: 999px; border: 3px solid var(--ink);
+  background: linear-gradient(180deg, #ffe07a, var(--honey)); animation: combo-pop .45s cubic-bezier(.2, 1.6, .4, 1); white-space: nowrap;
+}
+.combo-chip.hot { background: linear-gradient(180deg, #ffb07a, var(--coral)); color: #fff; text-shadow: 0 1px 0 var(--coral-dark); }
+@keyframes combo-pop { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
+.celebration.big .cheer-bubble { font-size: 1.35em; background: linear-gradient(180deg, #fff3b0, #ffd84d); }
+
+.quest-card { background: var(--white); border: 3px solid var(--honey); border-radius: var(--radius); padding: 10px 14px; box-shadow: var(--shadow); }
+.quest-card h2 { margin: 0 0 6px; font-size: 1.05rem; }
+.quest-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.quest-card li { display: grid; grid-template-columns: auto 1fr 90px auto; align-items: center; gap: 8px; font-weight: 700; font-size: 0.92rem; }
+.quest-card li.done .quest-name { text-decoration: line-through; color: var(--ink-soft); }
+.quest-bar { height: 10px; border-radius: 99px; background: var(--cream-2); border: 2px solid var(--ink); overflow: hidden; }
+.quest-bar span { display: block; height: 100%; background: var(--leaf); transition: width .6s; }
+.quest-card.all-done { border-color: var(--leaf); background: linear-gradient(180deg, #fffbe0, var(--leaf-light)); }
+.quest-all { margin: 8px 0 0; font-weight: 800; color: var(--leaf); }
+@media (max-width: 420px) { .quest-card li { grid-template-columns: auto 1fr 56px auto; font-size: 0.82rem; } }
+
+.gift { position: relative; display: grid; justify-items: center; gap: 4px; padding: 14px; border-radius: var(--radius); background: linear-gradient(180deg, #fff3d0, #ffe3ec); border: 3px dashed var(--coral); overflow: hidden; }
+.gift p { margin: 0; position: relative; }
+.gift-box { font-size: 72px; line-height: 1; background: none; border: none; cursor: pointer; animation: gift-wiggle 1.4s ease-in-out infinite; min-width: var(--tap); min-height: var(--tap); }
+@keyframes gift-wiggle { 0%, 60%, 100% { transform: rotate(0) scale(1); } 70% { transform: rotate(-10deg) scale(1.05); } 80% { transform: rotate(10deg) scale(1.08); } 90% { transform: rotate(-6deg) scale(1.04); } }
+.treasure-big { position: relative; font-size: 84px; line-height: 1; animation: treasure-in .8s cubic-bezier(.2, 1.6, .4, 1); }
+@keyframes treasure-in { 0% { transform: scale(0) rotate(-40deg); } 100% { transform: scale(1) rotate(0); } }
+.gift-rays { position: absolute; left: 50%; top: 58px; width: 320px; height: 320px; margin: -160px 0 0 -160px; border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 216, 77, .55) 0 12deg, transparent 12deg 30deg); animation: rays-spin 8s linear infinite; }
+@keyframes rays-spin { to { transform: rotate(360deg); } }
+
+.rest-note { background: var(--sky); border: 3px solid var(--sky-dark); border-radius: var(--radius); padding: 10px 14px; font-weight: 700; margin: 0; }
+.new-friend { display: flex; align-items: center; gap: 12px; background: var(--leaf-light); border: 3px solid var(--leaf); border-radius: var(--radius); padding: 8px 14px; }
+
+.collection h2 { margin: 0 0 8px; font-size: 1.1rem; }
+.collection h2 small { font-weight: 700; color: var(--ink-soft); font-size: 0.8rem; }
+.wardrobe-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.wardrobe-bee { margin-top: 14px; }
+.hat-grid { display: flex; flex-wrap: wrap; gap: 8px; flex: 1; }
+.hat-btn { min-width: 56px; min-height: 52px; border-radius: 14px; border: 3px solid var(--ink); background: var(--white); font: inherit; font-weight: 800; cursor: pointer; padding: 2px 8px; }
+.hat-btn .hat-face { font-size: 28px; }
+.hat-btn.on { background: var(--honey); box-shadow: 0 0 0 3px var(--honey-dark) inset; }
+.hat-btn:disabled { opacity: .55; cursor: default; border-style: dashed; }
+.friend-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 8px; }
+.friend { display: grid; justify-items: center; gap: 2px; padding: 6px; border-radius: 14px; background: var(--cream-2); font-weight: 800; }
+.friend-face { display: grid; place-items: center; width: 60px; height: 60px; }
+.friend.off .friend-face { filter: brightness(0) opacity(.25); }
+.treasure-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 6px; }
+.treasure { position: relative; display: grid; place-items: center; height: 46px; border-radius: 12px; background: var(--cream-2); font-size: 26px; }
+.treasure.off { color: var(--ink-soft); font-size: 18px; }
+.treasure b { position: absolute; right: 2px; bottom: 0; font-size: 0.65rem; }
+.reduce-motion .gift-box, .reduce-motion .gift-rays, .reduce-motion .combo-chip, .reduce-motion .treasure-big { animation: none; }
+@media (prefers-reduced-motion: reduce) { .gift-box, .gift-rays, .combo-chip, .treasure-big { animation: none; } }

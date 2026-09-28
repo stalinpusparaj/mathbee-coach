@@ -5,7 +5,8 @@ import type { CategoryId } from '../engine/types';
 import { CATEGORIES, GARDEN_ITEMS } from '../curriculum/curriculum';
 import { hasSprite } from '../assets/manifest';
 import { GARDEN_R, POND, flatSpots, landmarkPositions, terrainHeight, treePositions } from './layout3d';
-import { billboard, cloud, disposeScene, lights, makeRenderer, skyDome, tree } from './kit';
+import { THEMES, type JourneyTheme } from '../activities/journey';
+import { billboard, emojiSprite, cloud, disposeScene, lights, makeRenderer, skyDome, tree } from './kit';
 
 export interface Garden3DProps {
   names: Record<CategoryId, string>;
@@ -15,6 +16,9 @@ export interface Garden3DProps {
   onOpen: (c: CategoryId) => void;
   label: string;
   hint: string;
+  /** friends met on journeys come to live around the pond */
+  friends?: JourneyTheme[];
+  hat?: string | null;
 }
 
 const ICON_3D = (icon: string) => (icon.startsWith('bird:') ? 'owl_keeper' : icon);
@@ -24,7 +28,7 @@ const ICON_3D = (icon: string) => (icon.startsWith('bird:') ? 'owl_keeper' : ico
  * with the 14 places as landmarks. Place names are real HTML buttons that follow their landmark,
  * so tapping, keyboard use and screen readers work exactly as on the flat map.
  */
-export default function Garden3D({ names, blooms, recommended, owned, onOpen, label, hint }: Garden3DProps) {
+export default function Garden3D({ names, blooms, recommended, owned, onOpen, label, hint, friends = [], hat = null }: Garden3DProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const labelRefs = useRef<Record<string, HTMLButtonElement | null>>({});
@@ -188,7 +192,25 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
     });
 
     const bee = billboard('bee', 1.6, ready);
+    if (hat) {
+      const h = emojiSprite(hat, 0.8);
+      h.position.set(-0.13, 1.55, 0.05);
+      bee.add(h);
+    }
     scene.add(bee);
+
+    // friends met on journeys stroll around the pond
+    const strollers = friends.map((f, i) => {
+      const goal = THEMES[f].goal;
+      const g = goal === 'svg:hive' ? billboard('bee', 1.5, ready) : billboard(goal, 1.7, ready);
+      if (goal === 'svg:hive') {
+        const crown = emojiSprite('👑', 0.7);
+        crown.position.set(-0.1, 1.45, 0.05);
+        g.add(crown);
+      }
+      scene.add(g);
+      return { g, a0: (i / Math.max(1, friends.length)) * Math.PI * 2 + 0.4, r: POND.r + 1.9 + (i % 2) * 0.8 };
+    });
 
     // camera and gentle orbit controls
     const camera = new THREE.PerspectiveCamera(42, 1, 0.5, 900);
@@ -289,6 +311,12 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       bee.position.set(Math.sin(t * 0.25) * 15, 6 + Math.sin(t * 1.3) * 0.5, Math.sin(t * 0.5) * 10);
       clouds.forEach((c, i) => { c.position.x += Math.sin(t * 0.05 + i) * 0.004; });
       if (ring) ring.scale.setScalar(1 + Math.sin(t * 3) * 0.06);
+      strollers.forEach(({ g, a0, r }, i) => {
+        const a = a0 + t * 0.06 * (i % 2 ? -1 : 1);
+        const x = POND.x + Math.cos(a) * r;
+        const z = POND.z + Math.sin(a) * r * 0.85;
+        g.position.set(x, h(x, z) + Math.abs(Math.sin(t * 2.2 + i)) * 0.12, z);
+      });
       controls.update();
       renderer.render(scene, camera);
       if (dirty) { placeLabels(); dirty = false; el.dataset.drawCalls = String(renderer.info.render.calls); }
@@ -307,7 +335,7 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
     };
     // the scene is rebuilt only when what it shows changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [recommended, JSON.stringify(blooms), owned.join()]);
+  }, [recommended, JSON.stringify(blooms), owned.join(), friends.join(), hat]);
 
   return (
     <div className="garden3d" ref={wrap} role="group" aria-label={label}>

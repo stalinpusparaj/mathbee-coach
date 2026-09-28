@@ -346,3 +346,40 @@ test('reduced motion falls back to the flat 2D garden automatically', async ({ b
   await expect(page.locator('.garden3d')).toHaveCount(0);
   await ctx.close();
 });
+
+test('fun loop: buzz combo, finished journey meets a friend, daily gift, quests, and a hat for the bee', async ({ page }) => {
+  await newProfile(page);
+  await expect(page.getByTestId('quests')).toBeVisible();
+  await expect(page.getByTestId('quest-journey')).not.toHaveClass(/done/);
+  await expect(page.getByTestId('gift')).toHaveCount(0); // no gift before any journey
+
+  await page.getByTestId('loc-C09').click();
+  await page.getByTestId('practise-explore').click();
+  for (let i = 1; i <= 3; i++) {
+    await answerCurrent(page, true);
+    if (i === 3) await expect(page.getByTestId('cheer')).toContainText(/3 in a row/i); // big combo cheer
+    await page.getByTestId('next').click();
+  }
+  await expect(page.getByTestId('combo')).toContainText('3');
+  for (let i = 0; i < 20 && !(await page.getByTestId('results').isVisible()); i++) {
+    await answerCurrent(page, true);
+    await page.getByTestId('next').click();
+  }
+  await expect(page.getByTestId('results')).toBeVisible();
+  await expect(page.getByTestId('new-friend')).toContainText(/Penguin/);
+  await page.getByTestId('open-gift').click();
+  await expect(page.getByTestId('gift-found')).toContainText(/treasure/i);
+
+  await page.getByTestId('to-map').click();
+  await expect(page.getByTestId('quest-journey')).toHaveClass(/done/);
+  await expect(page.getByTestId('gift')).toHaveCount(0); // one gift a day
+
+  await page.getByTestId('sticker-book-btn').click();
+  await expect(page.getByTestId('friends')).toContainText(/1 of 7/);
+  await expect(page.getByTestId('treasures')).toContainText(/1 treasure found/);
+  await page.getByTestId('hat-0').click(); // level 2 reached → the bow is unlocked
+  await expect(page.getByTestId('hat-0')).toHaveAttribute('aria-pressed', 'true');
+  await page.reload();
+  await page.getByTestId('continue').click();
+  await expect(page.locator('.mission-card .bee-hat')).toHaveText('🎀');
+});

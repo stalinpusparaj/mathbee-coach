@@ -38,8 +38,8 @@ function Hive() {
  * the next one when a question is finished. Scenery layers slide at different speeds
  * (parallax) only during that hop, so nothing moves while the child is thinking.
  */
-export function JourneyTrack({ theme, index, total, marks, finished, name, onStoryTap, quiet }: {
-  theme: JourneyTheme; index: number; total: number; marks: StepMark[]; finished?: boolean; name: string; onStoryTap?: (text: string) => void; quiet?: boolean;
+export function JourneyTrack({ theme, index, total, marks, finished, name, onStoryTap, quiet, hat = null }: {
+  theme: JourneyTheme; index: number; total: number; marks: StepMark[]; finished?: boolean; name: string; onStoryTap?: (text: string) => void; quiet?: boolean; hat?: string | null;
 }) {
   const t = useT();
   const th = THEMES[theme];
@@ -72,7 +72,7 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
           <span className="jl-flag" aria-hidden>🏁</span>
         </span>
         <span className={`jl-bee ${finished ? 'arrived' : ''}`} style={{ left: `${bee.x * 100}%`, top: `${bee.y}%` }}>
-          <span key={at} className="jl-bee-inner"><Sprite id="bee" size="100%" decorative /></span>
+          <span key={at} className="jl-bee-inner"><Sprite id="bee" size="100%" decorative />{hat && <span className="bee-hat" aria-hidden>{hat}</span>}</span>
         </span>
       </div>
       <div className="jl jl-near" style={layerStyle(NEAR, world, cam)} aria-hidden />
@@ -83,7 +83,7 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
     <div className="journey-wrap">
       {threeD ? (
         <With3D flat={flat}>
-          <Journey3D theme={theme} at={at} total={total} marks={marks} finished={finished} label={label} />
+          <Journey3D theme={theme} at={at} total={total} marks={marks} finished={finished} label={label} hat={hat} />
         </With3D>
       ) : flat}
       {story && (
@@ -96,12 +96,12 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
 }
 
 /** Results-screen finale: the bee reaches the friend (or rests on the way if stopped early). */
-export function JourneyFinale({ theme, completed, name, steps }: { theme: JourneyTheme; completed: boolean; name: string; steps: number }) {
+export function JourneyFinale({ theme, completed, name, steps, hat = null }: { theme: JourneyTheme; completed: boolean; name: string; steps: number; hat?: string | null }) {
   const t = useT();
   const total = Math.max(1, steps);
   return (
     <section className={`journey-finale ${completed ? 'done' : ''}`} data-testid="journey-finale">
-      <JourneyTrack theme={theme} index={completed ? total : Math.max(0, total - 1)} total={total} marks={[]} finished={completed} name={name} quiet />
+      <JourneyTrack theme={theme} index={completed ? total : Math.max(0, total - 1)} total={total} marks={[]} finished={completed} name={name} quiet hat={hat} />
       <p className="finale-text">
         {completed ? `${t('journey.end', { name, friend: t(`friend.${theme}`) })} ${t(`journey.end.${theme}`)}` : t('journey.stopped')}
       </p>

@@ -143,7 +143,13 @@ Designed to reward effort, correcting mistakes and progress — with no lives, r
 - **Garden levels** (Seed → Sprout → Bud → Flower → Blossom → Busy Bee → Honey Keeper → Garden Star → Rainbow Gardener → Honey Master) come from lifetime nectar, so spending nectar never lowers them.
 - **Sticker book** with 21 stickers (first star, fixer, hint hero, learner, explorer, clock reader, sunny days…). New stickers and level-ups are revealed once, on the results screen. Practice days count up and never reset.
 - **Effects:** nectar drops fly to the top bar, results numbers count up with a sparkle rain, stickers flip in with a shine, level-ups get fireworks, screens fade in, buttons lift, and butterflies and a bee drift across the map. Learning scenes stay calm, and effects are removed when reduced motion is on.
-- All of this is computed from recorded progress (`src/learning/gamification.ts`, unit-tested), so refreshing cannot inflate it.
+- **Buzz combo.** Answers right on the first try in a row show a 🔥 "3 in a row!" chip; at 3, 5, 8 and 12 the bee gives an extra-big cheer ("3 in a row, Mickey! You are on fire!"). A miss just quietly starts a new count, with no "you lost it" message.
+- **Daily quests.** Three small goals a day (always "finish a journey", plus two others such as "play in 2 places", "get 3 right on the first try", "use a hint and then solve it"). Finishing all three earns a golden sunflower 🌻. Quests are new each day, and missed days cost nothing.
+- **Daily surprise gift.** After the first finished journey of the day, a wrapped gift 🎁 waits to be tapped open, revealing one of 24 treasures for the treasure chest. There is one gift per day, and it cannot be bought or repeated.
+- **Friends move into the garden.** Finishing a journey in a world means the friend there (Bunny, Frog, Squirrel, Penguin, Hedgehog, Owl, the Queen Bee) is met. Friends appear in the sticker book and stroll around the pond in the 3D garden.
+- **Bee wardrobe.** Each new garden level unlocks a hat (🎀 🌸 🧢 🎩 👒 🕶️ 🎓 ⛑️ 👑). The chosen hat shows on the bee on the map, in the journeys and in the 3D garden.
+- **Healthy limits.** After 3 finished journeys in a day, the results screen suggests a rest and a snack. Nothing rewards speed, and nothing is lost for missing a day.
+- All of this is computed from recorded progress (`src/learning/gamification.ts`, `src/learning/fun.ts`, unit-tested), so refreshing cannot inflate it.
 
 ## The 14 categories
 

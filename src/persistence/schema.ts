@@ -30,6 +30,8 @@ export function newProfile(id: string, avatar: string, nickname: string, languag
     garden: [],
     stickersSeen: [],
     levelSeen: 0,
+    treasures: [],
+    beeHat: null,
     screened: [],
     activeSession: null,
     activeMock: null,
@@ -56,6 +58,11 @@ function fillDefaults(p: Profile): Profile {
     ...p,
     settings: { ...DEFAULT_SETTINGS, ...(p.settings ?? {}), mastery: { ...DEFAULT_SETTINGS.mastery, ...(p.settings?.mastery ?? {}) } },
     competition: { ...DEFAULT_COMPETITION, ...(p.competition ?? {}) },
+    // fun extras: keep only well-formed entries (imports are untrusted)
+    treasures: Array.isArray(p.treasures)
+      ? p.treasures.filter((t) => t && isValidDateStr(t.date) && typeof t.id === 'string' && t.id.length <= 8).slice(0, 5000)
+      : [],
+    beeHat: typeof p.beeHat === 'string' && p.beeHat.length <= 8 ? p.beeHat : null,
   };
 }
 

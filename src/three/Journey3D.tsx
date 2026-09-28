@@ -12,6 +12,7 @@ export interface Journey3DProps {
   marks: StepMark[];
   finished?: boolean;
   label: string;
+  hat?: string | null;
 }
 
 interface Api { place: (at: number, finished: boolean) => void; rewards: (marks: StepMark[]) => void }
@@ -23,7 +24,7 @@ const HOP_MS = 900;
  * one island per finished question with the camera following. Frames are drawn only while
  * something moves, so the scene is completely still while the child is thinking.
  */
-export default function Journey3D({ theme, at, total, marks, finished = false, label }: Journey3DProps) {
+export default function Journey3D({ theme, at, total, marks, finished = false, label, hat = null }: Journey3DProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const api = useRef<Api | null>(null);
@@ -91,6 +92,11 @@ export default function Journey3D({ theme, at, total, marks, finished = false, l
     scene.add(rewardGroup);
 
     const bee = billboard('bee', 1.5, ready);
+    if (hat) {
+      const h = emojiSprite(hat, 0.75);
+      h.position.set(-0.12, 1.45, 0.05);
+      bee.add(h);
+    }
     scene.add(bee);
 
     const camera = new THREE.PerspectiveCamera(38, 1, 0.3, 300);
@@ -178,7 +184,7 @@ export default function Journey3D({ theme, at, total, marks, finished = false, l
     };
     // the scene is rebuilt only for a new world or length; hops and rewards update it in place
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [theme, total]);
+  }, [theme, total, hat]);
 
   useEffect(() => { api.current?.place(at, finished); }, [at, finished, theme, total]);
   const markKey = marks.map((m) => (m?.done ? (m.skipped ? 's' : m.own ? 'o' : 'h') : '-')).join('');

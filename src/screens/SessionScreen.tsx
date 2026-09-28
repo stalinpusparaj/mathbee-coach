@@ -19,6 +19,8 @@ import { pickSprite, spriteUrl } from '../assets/manifest';
 import { Modal } from '../components/ui';
 import { Celebration } from '../components/Celebration';
 import { displayName, pickCheer } from '../learning/gamification';
+import { COMBO_MILESTONES, comboAt, currentHat } from '../learning/fun';
+import { ComboChip } from '../components/Fun';
 import { JourneyTrack } from '../components/JourneyTrack';
 import { themeFor } from '../activities/journey';
 import { getTemplate } from '../engine/registry';
@@ -36,7 +38,7 @@ export function SessionScreen() {
   const [activeField, setActiveField] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [celebrate, setCelebrate] = useState<{ seed: number; key: string } | null>(null);
+  const [celebrate, setCelebrate] = useState<{ seed: number; key: string; n?: number; big?: boolean } | null>(null);
   const lastCheer = useRef<string | null>(null);
   const [flyKey, setFlyKey] = useState<number | null>(null);
   const endCelebration = useCallback(() => setCelebrate(null), []);
@@ -121,10 +123,12 @@ export function SessionScreen() {
       if (out.correct) {
         const name = displayName(profile!.nickname);
         const seed = Date.now() % 100000;
-        const key = pickCheer(seed, lastCheer.current, { named: !!name, fixed: (st?.checks ?? 0) > 0 });
+        const combo = out.profile.activeSession ? comboAt(out.profile.activeSession) : 0;
+        const milestone = COMBO_MILESTONES.includes(combo);
+        const key = milestone ? (name ? 'combo.cheer' : 'combo.cheerPlain') : pickCheer(seed, lastCheer.current, { named: !!name, fixed: (st?.checks ?? 0) > 0 });
         lastCheer.current = key;
-        setCelebrate({ seed, key });
-        if (profile?.settings.narration) speak(translate({ k: key, p: { name } }, lang), lang);
+        setCelebrate({ seed, key, n: combo, big: milestone });
+        if (profile?.settings.narration) speak(translate({ k: key, p: { name, n: combo } }, lang), lang);
       }
       if (profile?.settings.sound) (out.correct ? sfx.good : sfx.tryAgain)();
     }
@@ -188,7 +192,10 @@ export function SessionScreen() {
     <div className={`screen session ${q.format}`} data-testid="session">
       <header className="topbar">
         <button type="button" className="icon-btn" onClick={() => setPaused(true)} aria-label={t('ui.pause')} data-testid="pause">❚❚</button>
-        <span className="progress-text" aria-label={t('ui.progress', { n: session.index + 1, total: progress })}>{session.index + 1} / {progress}</span>
+        <span className="progress-group">
+          <span className="progress-text" aria-label={t('ui.progress', { n: session.index + 1, total: progress })}>{session.index + 1} / {progress}</span>
+          <ComboChip n={comboAt(session)} />
+        </span>
         <button type="button" className="icon-btn" onClick={narrate} disabled={!canNarrate} aria-label={t('ui.hearAgain')} title={canNarrate ? t('ui.hearAgain') : t('ui.noVoice')} data-testid="hear">🔊</button>
       </header>
 
@@ -203,6 +210,7 @@ export function SessionScreen() {
         name={displayName(profile.nickname) || t('ui.friend')}
         onStoryTap={(text) => { if (profile.settings.narration) speak(text, lang); }}
         quiet={(st?.checks ?? 0) > 0}
+        hat={currentHat(profile)}
       />
       <section className="prompt-box" aria-live="polite">
         {!slot.unannounced && spriteUrl(`banner_${q.category}`) && (
@@ -282,7 +290,7 @@ export function SessionScreen() {
         </footer>
       )}
 
-      {celebrate !== null && <Celebration seed={celebrate.seed} cheerKey={celebrate.key} name={displayName(profile.nickname)} onDone={endCelebration} />}
+      {celebrate !== null && <Celebration seed={celebrate.seed} cheerKey={celebrate.key} name={displayName(profile.nickname)} onDone={endCelebration} n={celebrate.n} big={celebrate.big} durationMs={celebrate.big ? 2600 : 2000} />}
       {flyKey !== null && <span key={flyKey} className="nectar-fly" aria-hidden>🍯<b>+1</b></span>}
       {toast && <div className="toast" role="status">🍯 {toast}</div>}
 

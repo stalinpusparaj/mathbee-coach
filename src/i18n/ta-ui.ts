@@ -172,4 +172,16 @@ export const TA_UI: Record<string, string> = {
   'ui.previous': 'முந்தையது', 'ui.submitTest': 'தேர்வை முடி', 'ui.submitConfirm': '{total} இல் {n} கேள்விகளுக்கு விடை அளித்தாய். இப்போது முடிக்கவா?', 'ui.yesSubmit': 'ஆம், முடி', 'ui.keepWorking': 'தொடர்ந்து செய்',
   'ui.testResults': 'தேர்வு முடிவுகள்', 'ui.testScore': '{n} இல் {c} சரி ({max} இல் {marks} மதிப்பெண்கள்).', 'ui.explanations': 'விடைகளும் விளக்கங்களும்', 'ui.followUpLessons': 'தொடர் பாடங்கள்', 'ui.learnSkill': 'கற்றுக்கொள்: {skill}',
   'ui.print': 'அச்சிடு', 'ui.sheetTitle': 'MathBee பயிற்சித்தாள்', 'ui.sheetName': 'பெயர்:', 'ui.sheetDate': 'தேதி:', 'ui.answer': 'விடை', 'ui.answersPage': 'விடைகளும் விளக்கங்களும்',
+  // ---- fun ----
+  'combo.chip': '🔥 தொடர்ந்து {n}!', 'combo.cheer': 'தொடர்ந்து {n} சரி, {name}! அருமை!', 'combo.cheerPlain': 'தொடர்ந்து {n} சரி! அருமை!',
+  'quest.title': 'இன்றைய சவால்கள்', 'quest.allDone': 'எல்லாச் சவால்களும் முடிந்தன! தங்கச் சூரியகாந்தி கிடைத்தது 🌻', 'quest.comeBack': 'நாளை புதிய சவால்கள்!',
+  'quest.journey': 'ஒரு பயணத்தை முடி', 'quest.solve5': '5 சரியான விடைகள்', 'quest.solve10': '10 சரியான விடைகள்', 'quest.places2': '2 வெவ்வேறு இடங்களில் விளையாடு',
+  'quest.firstTry3': 'முதல் முயற்சியிலேயே 3 சரி', 'quest.lesson': 'ஒரு பாடத்தை முடி', 'quest.hintHelp': 'குறிப்பைப் பயன்படுத்தித் தீர்', 'quest.worksheet3': '3 பயிற்சித்தாள் கேள்விகள்',
+  'gift.title': 'உனக்கு ஒரு பரிசு!', 'gift.tap': 'திறக்கத் தொடு', 'gift.found': 'உனக்குப் புதையல் கிடைத்தது: {t}', 'gift.tomorrow': 'நாளை இன்னொரு பரிசு காத்திருக்கிறது!',
+  'rest.note': 'இன்று அருமையாகச் செய்தாய், {name}! இப்போது ஓய்வெடுத்துச் சிற்றுண்டி சாப்பிடு — நாளை புதிய சவால்களும் பரிசும் காத்திருக்கின்றன.',
+  'fun.friends': 'நீ உதவிய நண்பர்கள்', 'fun.friendsCount': '{total} இல் {n} நண்பர்கள்', 'fun.friendHint': 'இந்த நண்பரைச் சந்திக்க ஒரு பயணத்தை முடி',
+  'fun.treasures': 'புதையல் பெட்டி', 'fun.treasureCount': '{n} புதையல்கள்', 'fun.noTreasure': 'முதல் பரிசைப் பெற ஒரு பயணத்தை முடி!',
+  'fun.golden': 'தங்கச் சூரியகாந்திகள்', 'fun.goldenCount': '{n} தங்க நாட்கள்',
+  'fun.wardrobe': 'தேனீயின் உடைப் பெட்டி', 'fun.noHat': 'தொப்பி இல்லை', 'fun.hatLocked': 'நிலை {n}', 'fun.wearing': 'தேனீ இதை அணிந்துள்ளது',
+  'fun.newFriend': 'புதிய நண்பர்: {friend} உன் தோட்டத்தில் குடியேறினார்!', 'fun.newHat': 'தேனீக்குப் புதிய தொப்பி கிடைத்தது!',
 };

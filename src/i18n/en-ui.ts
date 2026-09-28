@@ -269,4 +269,16 @@ export const EN_UI: Record<string, string> = {
   's.resetProfile': 'Delete this profile', 's.resetAll': 'Reset everything', 's.confirmTitle': 'Are you sure?', 's.confirmProfile': 'This deletes this child’s progress on this device. Export first if you want a copy.',
   's.confirmAll': 'This deletes all profiles and progress on this device. Export first if you want a copy.', 's.yesReset': 'Yes, delete',
   's.about': 'MathBee Coach is an independent practice app inspired by the supplied worksheets. It is not affiliated with any competition or publisher and does not promise results.',
+  // ---- fun: combos, quests, gifts, friends, hats ----
+  'combo.chip': '🔥 {n} in a row!', 'combo.cheer': '{n} in a row, {name}! You are on fire!', 'combo.cheerPlain': '{n} in a row! You are on fire!',
+  'quest.title': 'Today’s quests', 'quest.allDone': 'All quests done! You won a golden sunflower 🌻', 'quest.comeBack': 'New quests tomorrow!',
+  'quest.journey': 'Finish a journey', 'quest.solve5': 'Get 5 answers right', 'quest.solve10': 'Get 10 answers right', 'quest.places2': 'Play in 2 different places',
+  'quest.firstTry3': 'Get 3 right on the first try', 'quest.lesson': 'Finish a lesson', 'quest.hintHelp': 'Use a hint and then solve it', 'quest.worksheet3': 'Solve 3 worksheet questions',
+  'gift.title': 'A surprise gift for you!', 'gift.tap': 'Tap to open', 'gift.found': 'You found a treasure: {t}', 'gift.tomorrow': 'Come back tomorrow for another gift!',
+  'rest.note': 'Wonderful work today, {name}! Your brain has grown a lot. Time for a rest and a snack — new quests and a new gift are waiting tomorrow.',
+  'fun.friends': 'Friends you helped', 'fun.friendsCount': '{n} of {total} friends', 'fun.friendHint': 'Finish a journey to meet this friend',
+  'fun.treasures': 'Treasure chest', 'fun.treasureCount': '{n} {n?treasure|treasures} found', 'fun.noTreasure': 'Finish a journey to get your first gift!',
+  'fun.golden': 'Golden sunflowers', 'fun.goldenCount': '{n} golden {n?day|days}',
+  'fun.wardrobe': 'Bee wardrobe', 'fun.noHat': 'No hat', 'fun.hatLocked': 'Level {n}', 'fun.wearing': 'The bee is wearing this',
+  'fun.newFriend': 'New friend: {friend} came to live in your garden!', 'fun.newHat': 'New hat unlocked for the bee!',
 };

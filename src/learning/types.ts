@@ -188,6 +188,10 @@ export interface Profile {
   /** stickers already announced to the child, and the last garden level shown */
   stickersSeen: string[];
   levelSeen: number;
+  /** daily surprise gifts opened (one per day) */
+  treasures?: { date: DateStr; id: string }[];
+  /** hat chosen for the bee (unlocked by garden level) */
+  beeHat?: string | null;
   screened: CategoryId[];
   activeSession: ActiveSession | null;
   activeMock: MockState | null;

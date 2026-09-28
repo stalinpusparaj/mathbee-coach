@@ -4,6 +4,8 @@ import { useT } from '../i18n/useT';
 import { BackButton } from '../components/ui';
 import { STICKERS, LEVELS, earnedStickers, levelFor, lifetimeNectar, gardenVisits } from '../learning/gamification';
 import type { Profile } from '../learning/types';
+import { Collections } from '../components/Fun';
+import { HATS } from '../learning/fun';
 
 /** Level badge with a progress bar toward the next level (levels only ever go up). */
 export function LevelBadge({ profile, compact }: { profile: Profile; compact?: boolean }) {
@@ -39,6 +41,8 @@ export function StickerBookScreen() {
       </header>
       <LevelBadge profile={profile} />
       <p className="lead center">{t('ui.stickerCount', { n: earned.size, total: STICKERS.length })} · {t('ui.gardenVisits', { n: gardenVisits(profile) })}</p>
+      <Collections profile={profile} />
+      <h2 className="center">{t('ui.stickers')}</h2>
       <div className="sticker-grid">
         {STICKERS.map((s, i) => {
           const on = earned.has(s.id);
@@ -102,6 +106,11 @@ export function RewardReveal() {
           <span className="fireworks" aria-hidden>{Array.from({ length: 12 }, (_, i) => <span key={i} style={{ ['--r' as string]: `${i * 30}deg` }} />)}</span>
           <span className="level-icon big" aria-hidden>{snapshot.levelUp.icon}</span>
           <strong>{t('ui.levelUp', { level: t(`level.${snapshot.levelUp.key}`) })}</strong>
+          {HATS[snapshot.levelUp.index - 1] && (
+            <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'stickers' })} data-testid="new-hat">
+              {HATS[snapshot.levelUp.index - 1]} {t('fun.newHat')}
+            </button>
+          )}
         </div>
       )}
       {snapshot.fresh.length > 0 && (

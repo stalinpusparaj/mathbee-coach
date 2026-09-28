@@ -18,6 +18,8 @@ import { themeFor } from '../activities/journey';
 import type { CategoryId, Stage } from '../engine/types';
 import { use3D } from '../three/support';
 import { Garden3D, With3D } from '../three/Lazy3D';
+import { QuestCard, GiftBox, RestNote, HatBee, FriendFace } from '../components/Fun';
+import { currentHat, friendsMet } from '../learning/fun';
 import { STAGES } from '../engine/types';
 import type { SessionRecord } from '../learning/types';
 
@@ -95,12 +97,15 @@ export function GardenMapScreen() {
       </div>
 
       <section className="mission-card">
-        <Sprite id="bee" size={64} className="bee-idle" decorative />
+        <HatBee hat={currentHat(profile)} size={64} className="bee-idle" />
         <div>
           <p className="small">{t('ui.todaysMission')}</p>
           <button type="button" className="btn primary big" onClick={mission.go} data-testid="mission">{mission.label}</button>
         </div>
       </section>
+
+      <QuestCard profile={profile} />
+      <GiftBox profile={profile} />
 
       <nav className="quick-row" aria-label={t('ui.activities')}>
         <button type="button" className="btn secondary" onClick={() => launch('daily')} data-testid="daily">{t('ui.dailyPractice')}</button>
@@ -137,6 +142,8 @@ export function GardenMapScreen() {
               onOpen={(c) => store.setRoute({ name: 'category', category: c })}
               label={t('ui.gardenMap')}
               hint={t('ui.drag3d')}
+              friends={friendsMet(profile)}
+              hat={currentHat(profile)}
             />
           </With3D>
         ) : map2d
@@ -201,6 +208,13 @@ export function ResultsScreen({ record, newNectar }: { record: SessionRecord; ne
   const profile = useProfile();
   const cats = record.categories.map((c) => t(`cat.${c}`)).join(', ');
   const suggestion = profile && dueReviews(profile.reviews, todayStr()).length ? t('ui.suggestReview') : t('ui.suggestDaily');
+  // a friend met for the first time on this journey
+  const [newFriend] = useState(() => {
+    if (!profile || !record.completed || !record.questions || !record.categories.length) return null;
+    const theme = themeFor(record.categories);
+    const before = friendsMet({ sessions: profile.sessions.filter((x) => x.id !== record.id) });
+    return before.includes(theme) ? null : theme;
+  });
   return (
     <div className="screen results" data-testid="results">
       <BeeSays pose={pickSprite('bee_celebrate', 'bee')}>
@@ -216,10 +230,18 @@ export function ResultsScreen({ record, newNectar }: { record: SessionRecord; ne
       </div>
       {record.questions > 0 && record.categories.length > 0 && (
         <JourneyFinale theme={themeFor(record.categories)} completed={record.completed} steps={record.questions}
-          name={(profile && displayName(profile.nickname)) || t('ui.friend')} />
+          name={(profile && displayName(profile.nickname)) || t('ui.friend')} hat={profile ? currentHat(profile) : null} />
       )}
+      {newFriend && (
+        <div className="new-friend pop-in" role="status" data-testid="new-friend">
+          <FriendFace theme={newFriend} size={72} />
+          <strong>{t('fun.newFriend', { friend: t(`friend.${newFriend}`) })}</strong>
+        </div>
+      )}
+      {profile && <GiftBox profile={profile} />}
       <RewardReveal />
       {profile && <LevelBadge profile={profile} />}
+      {profile && <RestNote profile={profile} />}
       {cats && <p className="small">{t('ui.youPractised', { what: cats })}</p>}
       <p className="small">{t('ui.nextIdea')}: {suggestion}</p>
       <div className="row wrap center">
