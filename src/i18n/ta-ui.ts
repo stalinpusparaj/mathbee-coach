@@ -136,7 +136,7 @@ export const TA_UI: Record<string, string> = {
   'ui.nectarCount': '{n} தேன்', 'ui.listView': 'பட்டியல்', 'ui.mapView': 'வரைபடம்', 'ui.todaysMission': 'இன்றைய பணி',
   'ui.missionControls': 'பொத்தான் பயிற்சி', 'ui.missionCheckup': 'தோட்டச் சோதனை ({n} இடங்கள்)', 'ui.missionReview': 'மீள்பார்வை ({n})', 'ui.missionDaily': 'தினசரிப் பயிற்சி',
   'ui.activities': 'செயல்பாடுகள்', 'ui.dailyPractice': 'தினசரிப் பயிற்சி', 'ui.review': 'மீள்பார்வை', 'ui.worksheetsTests': 'பயிற்சித்தாள்கள், தேர்வுகள்', 'ui.restoreGarden': 'தோட்டத்தை அழகாக்கு',
-  'ui.gardenMap': 'தோட்ட வரைபடம்', 'ui.bloomLevel': '3 இல் {n} பூக்கள்', 'ui.notTriedYet': 'இன்னும் முயலவில்லை',
+  'ui.gardenMap': 'தோட்ட வரைபடம்', 'ui.drag3d': 'இழுத்துச் சுற்றிப் பாருங்கள் · விளையாட ஓர் இடத்தைத் தொடுங்கள்', 's.graphics': '3D உலகம்', 's.graphicsAuto': 'தானியங்கி (அசைவு குறைக்கப்படாவிட்டால் 3D)', 's.graphics3d': 'எப்போதும் 3D', 's.graphics2d': 'தட்டையான 2D படங்கள்', 'ui.bloomLevel': '3 இல் {n} பூக்கள்', 'ui.notTriedYet': 'இன்னும் முயலவில்லை',
   'ui.learn': 'கற்றுக்கொள்', 'ui.practise': 'பயிற்சி செய்', 'ui.later': 'பிறகு', 'ui.extension': 'கூடுதல் சவால்', 'ui.secureCount': '{total} இல் {n} நன்றாக வளர்கின்றன',
   'ui.pause': 'நிறுத்து', 'ui.progress': 'கேள்வி {n} / {total}', 'ui.hearAgain': 'மீண்டும் கேள்', 'ui.noVoice': 'குரல் இல்லை — எழுத்தைப் படி',
   'ui.watchMe': 'என்னைப் பார்', 'ui.tryTogether': 'சேர்ந்து முயல்வோம்', 'ui.worksheetStyle': 'பயிற்சித்தாள் முறை', 'ui.watchSteps': 'தேனீ எப்படித் தீர்க்கிறது என்று படிப்படியாகப் பார்.',

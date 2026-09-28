@@ -184,7 +184,7 @@ export const EN_UI: Record<string, string> = {
   'ui.nectarCount': '{n} nectar', 'ui.listView': 'List', 'ui.mapView': 'Map', 'ui.todaysMission': 'Today’s mission',
   'ui.missionControls': 'Button practice', 'ui.missionCheckup': 'Garden check-up ({n} places to visit)', 'ui.missionReview': 'Review ({n})', 'ui.missionDaily': 'Daily practice',
   'ui.activities': 'Activities', 'ui.dailyPractice': 'Daily practice', 'ui.review': 'Review', 'ui.worksheetsTests': 'Worksheets & tests', 'ui.restoreGarden': 'Restore the garden',
-  'ui.gardenMap': 'Garden map', 'ui.bloomLevel': '{n} of 3 flowers', 'ui.notTriedYet': 'not tried yet',
+  'ui.gardenMap': 'Garden map', 'ui.drag3d': 'Drag to look around · tap a place to play', 'ui.bloomLevel': '{n} of 3 flowers', 'ui.notTriedYet': 'not tried yet',
   'ui.learn': 'Learn', 'ui.practise': 'Practise', 'ui.later': 'later', 'ui.extension': 'extra challenge', 'ui.secureCount': '{n} of {total} growing well',
   'ui.pause': 'Pause', 'ui.progress': 'Question {n} of {total}', 'ui.hearAgain': 'Hear again', 'ui.noVoice': 'No voice available — read the words',
   'ui.watchMe': 'Watch me', 'ui.tryTogether': 'Let’s try together', 'ui.worksheetStyle': 'Worksheet style', 'ui.watchSteps': 'Watch how Bee solves it, step by step.',
@@ -260,7 +260,7 @@ export const EN_UI: Record<string, string> = {
 
   // settings
   's.child': 'Child profile', 's.tamilStatus': 'Tamil text: {status}. Tamil voice on this device: {voice}.', 's.yes': 'yes', 's.no': 'no — text is shown instead',
-  's.play': 'Play', 's.sound': 'Sound effects', 's.music': 'Background music', 's.narration': 'Read questions aloud', 's.motion': 'Motion', 's.motionSystem': 'Follow device setting', 's.motionReduce': 'Reduce motion', 's.motionFull': 'Full animation',
+  's.play': 'Play', 's.sound': 'Sound effects', 's.music': 'Background music', 's.narration': 'Read questions aloud', 's.motion': 'Motion', 's.motionSystem': 'Follow device setting', 's.motionReduce': 'Reduce motion', 's.motionFull': 'Full animation', 's.graphics': '3D world', 's.graphicsAuto': 'Automatic (3D unless motion is reduced)', 's.graphics3d': 'Always 3D', 's.graphics2d': 'Flat 2D pictures',
   's.minutes': 'Session length (minutes)', 's.learning': 'Learning rules', 's.heuristicNote': 'These are adjustable product heuristics, not validated standards.',
   's.masteryCorrect': 'Correct needed', 's.masteryWindow': '…out of latest', 's.intervals': 'Review intervals (days)', 's.regroup': 'Unlock regrouping (carrying/borrowing) now', 's.extensions': 'Show extension topics',
   's.data': 'Data on this device', 's.storage.indexeddb': 'Saved on this device (IndexedDB).', 's.storage.localstorage': 'Saved on this device (local storage).', 's.storage.memory': 'Not saved: this browser blocks storage.',

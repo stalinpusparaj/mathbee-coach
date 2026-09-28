@@ -16,6 +16,8 @@ import { MusicToggle } from '../components/MusicToggle';
 import { JourneyFinale } from '../components/JourneyTrack';
 import { themeFor } from '../activities/journey';
 import type { CategoryId, Stage } from '../engine/types';
+import { use3D } from '../three/support';
+import { Garden3D, With3D } from '../three/Lazy3D';
 import { STAGES } from '../engine/types';
 import type { SessionRecord } from '../learning/types';
 
@@ -31,6 +33,7 @@ export function GardenMapScreen() {
   const t = useT();
   const profile = useProfile();
   const [listView, setListView] = useState(false);
+  const threeD = use3D();
   const ev = useMemo(() => (profile ? evaluateAll(profile.attempts, profile.settings.mastery) : {}), [profile?.attempts, profile?.settings.mastery]);
   if (!profile) return null;
   const due = dueReviews(profile.reviews, todayStr()).length;
@@ -44,6 +47,34 @@ export function GardenMapScreen() {
         : { label: t('ui.missionDaily'), go: () => launch('daily'), id: 'daily' };
   const recommendedCat = unscreened[0];
   const mapArt = { wide: spriteUrl('bg_map_wide'), tall: spriteUrl('bg_map_tall') };
+
+  const map2d = (
+    <div className={`map ${mapArt.wide || mapArt.tall ? 'has-art' : ''}`} role="group" aria-label={t('ui.gardenMap')}
+      style={{ ['--map-wide' as string]: mapArt.wide ? `url(${mapArt.wide})` : undefined, ['--map-tall' as string]: `url(${mapArt.tall ?? mapArt.wide})` }}>
+      <svg className="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+        <path d="M14 22 C30 10 50 30 62 14 S 86 30 86 22 M14 22 C10 36 20 44 12 46 S 30 50 34 42 S 50 34 58 40 S 80 52 84 48 M12 46 C10 60 18 70 14 72 S 30 74 36 68 S 50 60 58 66 S 76 80 82 74 M36 68 C32 80 28 86 30 90 S 50 96 62 90" stroke="#e8c98f" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+        <ellipse cx="48" cy="56" rx="9" ry="5" fill="#9fd3ee" />
+      </svg>
+      <div className="map-ambient" aria-hidden>
+        <span className="butterfly b1">🦋</span><span className="butterfly b2">🦋</span><span className="butterfly b3">🦋</span>
+        <span className="map-bee"><Sprite id="bee" size={40} decorative /></span>
+      </div>
+      {GARDEN_ITEMS.filter((g) => profile.garden.includes(g.id) && hasSprite(g.sprite)).map((g) => (
+        <span key={g.id} className="garden-item" style={{ left: `${g.x}%`, top: `${g.y}%` }}><Sprite id={g.sprite} size={46} decorative /></span>
+      ))}
+      {CATEGORIES.map((c) => {
+        const bloom = categoryBloom(c.id, ev);
+        return (
+          <button key={c.id} type="button" className={`location ${recommendedCat === c.id ? 'recommended' : ''}`} style={{ left: `${c.map.x}%`, top: `${c.map.y}%` }}
+            onClick={() => store.setRoute({ name: 'category', category: c.id })} data-testid={`loc-${c.id}`}>
+            <Sprite id={c.icon} size={58} decorative />
+            <span className="loc-name">{t(`cat.${c.id}`)}</span>
+            <Flowers n={bloom} label={t('ui.bloomLevel', { n: bloom })} />
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className="screen garden">
@@ -96,31 +127,19 @@ export function GardenMapScreen() {
           })}
         </ul>
       ) : (
-        <div className={`map ${mapArt.wide || mapArt.tall ? 'has-art' : ''}`} role="group" aria-label={t('ui.gardenMap')}
-          style={{ ['--map-wide' as string]: mapArt.wide ? `url(${mapArt.wide})` : undefined, ['--map-tall' as string]: `url(${mapArt.tall ?? mapArt.wide})` }}>
-          <svg className="map-paths" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
-            <path d="M14 22 C30 10 50 30 62 14 S 86 30 86 22 M14 22 C10 36 20 44 12 46 S 30 50 34 42 S 50 34 58 40 S 80 52 84 48 M12 46 C10 60 18 70 14 72 S 30 74 36 68 S 50 60 58 66 S 76 80 82 74 M36 68 C32 80 28 86 30 90 S 50 96 62 90" stroke="#e8c98f" strokeWidth="3.5" fill="none" strokeLinecap="round" />
-            <ellipse cx="48" cy="56" rx="9" ry="5" fill="#9fd3ee" />
-          </svg>
-          <div className="map-ambient" aria-hidden>
-            <span className="butterfly b1">🦋</span><span className="butterfly b2">🦋</span><span className="butterfly b3">🦋</span>
-            <span className="map-bee"><Sprite id="bee" size={40} decorative /></span>
-          </div>
-          {GARDEN_ITEMS.filter((g) => profile.garden.includes(g.id) && hasSprite(g.sprite)).map((g) => (
-            <span key={g.id} className="garden-item" style={{ left: `${g.x}%`, top: `${g.y}%` }}><Sprite id={g.sprite} size={46} decorative /></span>
-          ))}
-          {CATEGORIES.map((c) => {
-            const bloom = categoryBloom(c.id, ev);
-            return (
-              <button key={c.id} type="button" className={`location ${recommendedCat === c.id ? 'recommended' : ''}`} style={{ left: `${c.map.x}%`, top: `${c.map.y}%` }}
-                onClick={() => store.setRoute({ name: 'category', category: c.id })} data-testid={`loc-${c.id}`}>
-                <Sprite id={c.icon} size={58} decorative />
-                <span className="loc-name">{t(`cat.${c.id}`)}</span>
-                <Flowers n={bloom} label={t('ui.bloomLevel', { n: bloom })} />
-              </button>
-            );
-          })}
-        </div>
+        threeD ? (
+          <With3D flat={map2d}>
+            <Garden3D
+              names={Object.fromEntries(CATEGORIES.map((c) => [c.id, t(`cat.${c.id}`)])) as Record<CategoryId, string>}
+              blooms={Object.fromEntries(CATEGORIES.map((c) => [c.id, categoryBloom(c.id, ev)])) as Record<CategoryId, number>}
+              recommended={recommendedCat}
+              owned={profile.garden}
+              onOpen={(c) => store.setRoute({ name: 'category', category: c })}
+              label={t('ui.gardenMap')}
+              hint={t('ui.drag3d')}
+            />
+          </With3D>
+        ) : map2d
       )}
       <footer className="garden-foot">
         <HoldButton label={t('ui.grownUps')} onDone={() => store.setRoute({ name: 'parent' })} testId="parent-hold" />

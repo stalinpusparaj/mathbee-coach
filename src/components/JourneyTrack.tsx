@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react';
 import { Sprite } from './art';
 import { THEMES, platformPositions, worldWidth, cameraOffset, storyBeat, type JourneyTheme } from '../activities/journey';
 import { useT } from '../i18n/useT';
+import { use3D } from '../three/support';
+import { Journey3D, With3D } from '../three/Lazy3D';
 
 export interface StepMark { done: boolean; own: boolean; skipped: boolean }
 
@@ -49,11 +51,12 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
   const beat = finished || quiet ? null : storyBeat(index, total);
   const friend = t(`friend.${theme}`);
   const story = beat ? t(beat === 'intro' ? `journey.intro.${theme}` : 'journey.mid', { name, friend }) : null;
+  const label = t('ui.journey', { n: Math.min(index + 1, total), total, friend });
+  const threeD = use3D();
   const vars = { '--sky1': th.sky[0], '--sky2': th.sky[1], '--far': th.far, '--mid': th.mid, '--near': th.near, '--ground': th.ground } as CSSProperties;
 
-  return (
-    <div className="journey-wrap">
-    <div className={`journey theme-${theme}`} style={vars} role="img" aria-label={t('ui.journey', { n: Math.min(index + 1, total), total, friend })} data-testid="journey">
+  const flat = (
+    <div className={`journey theme-${theme}`} style={vars} role="img" aria-label={label} data-testid="journey">
       <span className="jl-sun" aria-hidden />
       {LAYERS.map((l) => <div key={l.cls} className={`jl ${l.cls}`} style={layerStyle(l.f, world, cam)} aria-hidden />)}
       <div className="jl jl-world" style={layerStyle(1, world, cam)}>
@@ -74,6 +77,15 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
       </div>
       <div className="jl jl-near" style={layerStyle(NEAR, world, cam)} aria-hidden />
     </div>
+  );
+
+  return (
+    <div className="journey-wrap">
+      {threeD ? (
+        <With3D flat={flat}>
+          <Journey3D theme={theme} at={at} total={total} marks={marks} finished={finished} label={label} />
+        </With3D>
+      ) : flat}
       {story && (
         <button type="button" className="jl-story" onClick={() => onStoryTap?.(story)} data-testid="journey-story">
           <Sprite id="bee" size={26} decorative /> <span>{story}</span>

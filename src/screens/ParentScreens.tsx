@@ -302,6 +302,11 @@ export function SettingsScreen() {
             <option value="system">{t('s.motionSystem')}</option><option value="on">{t('s.motionReduce')}</option><option value="off">{t('s.motionFull')}</option>
           </select>
         </label>
+        <label className="field-row"><span>{t('s.graphics')}</span>
+          <select value={s.graphics ?? 'auto'} onChange={(e) => set({ graphics: e.target.value as Settings['graphics'] })} data-testid="graphics-setting">
+            <option value="auto">{t('s.graphicsAuto')}</option><option value="3d">{t('s.graphics3d')}</option><option value="2d">{t('s.graphics2d')}</option>
+          </select>
+        </label>
         <label className="field-row"><span>{t('s.minutes')}</span><input type="number" min={3} max={30} value={s.sessionMinutes} onChange={(e) => set({ sessionMinutes: Math.max(3, Math.min(30, Number(e.target.value) || 10)) })} data-testid="minutes" /></label>
       </section>
       <section className="card form">

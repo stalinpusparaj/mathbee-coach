@@ -301,3 +301,48 @@ test('background music really plays after the first tap, quieter during question
   await expect.poll(async () => (await state()).scene).toBe('play');
   await expect.poll(async () => (await state()).level, { timeout: 5000 }).toBeLessThan(0.16);
 });
+
+test('3D garden: explorable world opens places, the bee journey is 3D, and grown-ups can switch to flat 2D', async ({ page }) => {
+  await newProfile(page);
+  const garden = page.locator('.garden3d');
+  await expect(garden).toBeVisible();
+  await expect(page.locator('.garden3d canvas')).toBeVisible();
+  await expect(page.locator('.loc3d')).toHaveCount(14);
+  // the scene really drew its meshes (WebGL draw calls this frame)
+  await expect.poll(async () => Number(await garden.getAttribute('data-draw-calls')), { timeout: 10_000 }).toBeGreaterThan(50);
+
+  // a place label opens that place; the session journey is drawn in 3D
+  await page.getByTestId('loc-C07').click();
+  await page.getByTestId('practise-explore').click();
+  await expect(page.locator('[data-testid="journey"][data-3d="1"]')).toBeVisible();
+  await expect(page.locator('[data-testid="journey"]')).toHaveAttribute('data-at', '0');
+  await answerCurrent(page, true);
+  await page.getByTestId('next').click();
+  await expect(page.locator('[data-testid="journey"]')).toHaveAttribute('data-at', '1');
+  await page.getByTestId('pause').click();
+  await page.getByTestId('stop').click();
+  await page.getByTestId('to-map').click();
+
+  // grown-ups: Graphics → flat 2D brings back the picture map
+  const hold = page.getByTestId('parent-hold');
+  await hold.hover();
+  await page.mouse.down();
+  await page.waitForTimeout(1800);
+  await page.mouse.up();
+  await page.getByTestId('to-settings').click();
+  await page.getByTestId('graphics-setting').selectOption('2d');
+  await page.reload();
+  await page.getByTestId('continue').click();
+  await expect(page.locator('.map')).toBeVisible();
+  await expect(page.locator('.garden3d')).toHaveCount(0);
+  await expect(page.locator('.location')).toHaveCount(14);
+});
+
+test('reduced motion falls back to the flat 2D garden automatically', async ({ browser }) => {
+  const ctx = await browser.newContext({ reducedMotion: 'reduce' });
+  const page = await ctx.newPage();
+  await newProfile(page);
+  await expect(page.locator('.map')).toBeVisible();
+  await expect(page.locator('.garden3d')).toHaveCount(0);
+  await ctx.close();
+});

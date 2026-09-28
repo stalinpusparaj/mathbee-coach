@@ -147,6 +147,8 @@ export interface Settings {
   sound: boolean;
   narration: boolean;
   reducedMotion: 'system' | 'on' | 'off';
+  /** 3D garden and journey: auto = when the device supports it and motion is not reduced */
+  graphics: 'auto' | '3d' | '2d';
   sessionMinutes: number;
   mastery: { window: number; correct: number; minSessions: number; minTemplates: number };
   reviewIntervals: number[];
@@ -204,6 +206,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sound: true,
   narration: true,
   reducedMotion: 'system',
+  graphics: 'auto',
   sessionMinutes: 10,
   mastery: { window: 10, correct: 8, minSessions: 2, minTemplates: 2 },
   reviewIntervals: [1, 3, 7, 14],

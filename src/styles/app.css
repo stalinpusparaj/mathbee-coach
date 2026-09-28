@@ -692,3 +692,34 @@ td.status.not-assessed { color: var(--ink-soft); }
   html:not(.full-motion) .jl-bee-inner { animation: none; }
 }
 @media print { .journey { display: none; } }
+
+/* ---------- 3D garden and journey ---------- */
+.garden3d {
+  position: relative; width: 100%; height: min(62vh, 620px); min-height: 340px; border-radius: var(--radius);
+  overflow: hidden; background: linear-gradient(#9fd8f7, #fff4d6); border: 4px solid var(--ink); border-radius: 26px;
+}
+.garden3d-canvas, .journey3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: pan-y; cursor: grab; }
+.garden3d-canvas:active { cursor: grabbing; }
+.garden3d-labels { position: absolute; inset: 0; pointer-events: none; }
+.loc3d {
+  position: absolute; left: 0; top: 0; pointer-events: auto; display: flex; align-items: center; gap: 4px; white-space: nowrap;
+  padding: 3px 9px; min-height: 34px; border-radius: 99px; border: 2px solid var(--ink);
+  background: rgba(255, 255, 255, 0.92); box-shadow: 0 3px 10px rgba(0, 0, 0, 0.18); font: inherit; color: var(--ink); cursor: pointer;
+}
+.loc3d .loc-name { font-size: 0.72rem; font-weight: 800; line-height: 1.1; text-align: center; }
+.loc3d .blooms { font-size: 0.6rem; display: inline-flex; }
+.loc3d.recommended { background: var(--honey); }
+.loc3d:focus-visible { outline: 4px solid var(--focus, #1f6feb); outline-offset: 2px; }
+.garden3d-hint {
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); margin: 0; padding: 3px 10px; border-radius: 99px;
+  background: rgba(255, 255, 255, 0.8); font-size: 0.75rem; font-weight: 700; pointer-events: none; white-space: nowrap;
+}
+.garden3d.touched .garden3d-hint { opacity: 0; transition: opacity .6s; }
+.journey3d { background: linear-gradient(var(--sky1, #bfe6fb), var(--sky2, #fff4d6)); }
+.journey3d .journey3d-canvas { cursor: default; }
+@media (max-width: 520px) {
+  .garden3d { height: 56vh; min-height: 300px; }
+  .loc3d { padding: 2px 6px; min-height: 30px; }
+  .loc3d .loc-name { font-size: 0.6rem; }
+  .loc3d .blooms { display: none; }
+}

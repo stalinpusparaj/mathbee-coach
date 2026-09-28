@@ -117,6 +117,24 @@ How it works: sprites are requested on a flat magenta background, which `tools/p
 | Parent dashboard | Coverage, unassessed areas, independent vs assisted accuracy, tentative recurring errors with evidence, retention, plain-format performance, own-history response times, history, three next actions. No readiness percentage. |
 | Settings | Sound, narration, reduced motion, session length, mastery heuristic, review intervals, regrouping unlock, export / import (validated) / reset (confirmed). |
 
+## 3D world
+
+The garden map and the bee journey are drawn in 3D with three.js (question boards stay flat, so the
+maths is always clear):
+
+- **3D garden** (`src/three/Garden3D.tsx`): low-poly hills, trees, flowers, a pond with a wooden bridge,
+  a stepping-stone path and a flying bee. The 14 places are stages with the game's own art standing on
+  them. Drag to look around, pinch/scroll to zoom, tap a place (or its name label) to open it.
+  Name labels are real buttons, so keyboard and screen readers work as before.
+- **3D journey** (`src/three/Journey3D.tsx`): floating islands lead to the friend at the end; the bee
+  hops one island per finished question and the camera follows. Frames are drawn only while something
+  moves, so nothing moves while the child is thinking.
+- **Fallbacks**: grown-ups choose *Settings → 3D world*: Automatic (default), Always 3D or Flat 2D.
+  Automatic uses the flat 2D pictures when the device asks for reduced motion or has no WebGL, and any
+  3D error quietly falls back to 2D. three.js is loaded only when a 3D view is shown and is cached by the
+  service worker, so it still works offline.
+- Pure layout maths lives in `src/three/layout3d.ts` (unit-tested); reusable props in `src/three/kit.ts`.
+
 ## Motivation, gamification and effects
 
 Designed to reward effort, correcting mistakes and progress — with no lives, rankings, purchases, or streaks that can be lost.
