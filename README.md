@@ -52,6 +52,12 @@ Re-cut sprites from the asset sheets (needs Python 3 with pillow, numpy, scipy; 
 npm run assets
 ```
 
+## Self-hosted on Coolify
+
+Code: https://github.com/stalinpusparaj/mathbee-coach (public). Coolify builds it with the `Dockerfile` (Node build → nginx) and serves it at https://mathbee.169.58.3.64.sslip.io. This full version supports offline play and "Add to Home Screen" (these need HTTPS).
+
+To update the site, commit and push to `main`, then press **Redeploy** in Coolify (or enable auto-deploy with a GitHub webhook in the app's settings). The worksheet photos, raw art sheets and `.mcp.json` (Coolify token) are excluded by `.gitignore` and must never be committed.
+
 ## Live version on claude.ai
 
 The game is published as a private claude.ai Artifact: https://claude.ai/artifact/G2bg7d6hfS6Zy7YgfX5MBA (share it from the page's Share menu).
