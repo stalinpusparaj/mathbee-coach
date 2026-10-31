@@ -19,6 +19,8 @@ export interface Garden3DProps {
   /** friends met on journeys come to live around the pond */
   friends?: JourneyTheme[];
   hat?: string | null;
+  /** a restored garden item was tapped: it hops (the screen plays a chime) */
+  onItem?: (id: string) => void;
 }
 
 /** 30 fps is plenty for drifting clouds and halves the GPU work on phones. */
@@ -31,12 +33,14 @@ const ICON_3D = (icon: string) => (icon.startsWith('bird:') ? 'owl_keeper' : ico
  * with the 14 places as landmarks. Place names are real HTML buttons that follow their landmark,
  * so tapping, keyboard use and screen readers work exactly as on the flat map.
  */
-export default function Garden3D({ names, blooms, recommended, owned, onOpen, label, hint, friends = [], hat = null }: Garden3DProps) {
+export default function Garden3D({ names, blooms, recommended, owned, onOpen, onItem, label, hint, friends = [], hat = null }: Garden3DProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const labelRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const openRef = useRef(onOpen);
   openRef.current = onOpen;
+  const itemRef = useRef(onItem);
+  itemRef.current = onItem;
   // a lost WebGL context is thrown during render so With3D's boundary swaps in the flat map
   const [lost, setLost] = useState(false);
   if (lost) throw new Error('WebGL context lost');
@@ -188,13 +192,16 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       labelAnchors.push({ id: m.id, v: new THREE.Vector3(m.x, y + 0.2, m.z + 1.9) });
     });
 
-    // restored garden items stand around the garden
+    // restored garden items stand around the garden; a tap makes one hop (as in Fly & Train's garden)
+    const items: { g: THREE.Object3D; y: number; hop: number }[] = [];
     GARDEN_ITEMS.filter((g) => owned.includes(g.id) && hasSprite(g.sprite)).forEach((g) => {
       const x = ((g.x - 50) / 50) * (GARDEN_R - 6);
       const z = ((g.y - 50) / 50) * (GARDEN_R - 10);
       const item = billboard(g.sprite, 1.5, ready);
       item.position.set(x, h(x, z), z);
+      item.traverse((o) => { o.userData.item = g.id; });
       scene.add(item);
+      items.push({ g: item, y: item.position.y, hop: -1 });
     });
 
     const bee = billboard('bee', 1.6, ready);
@@ -244,9 +251,16 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       down = null;
       const r = renderer.domElement.getBoundingClientRect();
       ray.setFromCamera(new THREE.Vector2(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1), camera);
-      const hit = ray.intersectObjects(pickables, true)[0];
+      const hit = ray.intersectObjects([...pickables, ...items.map((i) => i.g)], true)[0];
       const cat = hit?.object.userData.cat as CategoryId | undefined;
-      if (cat) openRef.current(cat);
+      if (cat) { openRef.current(cat); return; }
+      const id = hit?.object.userData.item as string | undefined;
+      const it = id ? items.find((i) => i.g.userData.item === id) : undefined;
+      if (it && id) {
+        it.hop = clock.getElapsedTime();
+        itemRef.current?.(id);
+        if (!raf) raf = requestAnimationFrame(loop);
+      }
     };
     renderer.domElement.addEventListener('pointerdown', onDown);
     renderer.domElement.addEventListener('pointerup', onUp);
@@ -322,6 +336,12 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       bee.position.set(Math.sin(t * 0.25) * 15, 6 + Math.sin(t * 1.3) * 0.5, Math.sin(t * 0.5) * 10);
       clouds.forEach((c, i) => { c.position.x += Math.sin(t * 0.05 + i) * 0.004; });
       if (ring) ring.scale.setScalar(1 + Math.sin(t * 3) * 0.06);
+      items.forEach((it) => {
+        if (it.hop < 0) return;
+        const k = (t - it.hop) / 0.4;
+        if (k >= 1) { it.hop = -1; it.g.position.y = it.y; return; }
+        it.g.position.y = it.y + Math.sin(k * Math.PI) * 0.6;
+      });
       strollers.forEach(({ g, a0, r }, i) => {
         const a = a0 + t * 0.06 * (i % 2 ? -1 : 1);
         const x = POND.x + Math.cos(a) * r;

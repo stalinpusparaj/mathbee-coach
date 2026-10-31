@@ -67,16 +67,21 @@ export interface DrawOpts {
  * names such as "Wednesday" stay big enough to read; everything else is square.
  */
 export function visualAspect(v: GateVisual): number {
-  return v.kind === 'day' ? 2 : 1;
+  return isSign(v) ? 2 : 1;
+}
+
+/** Visuals drawn as words on a wide 2:1 sign: day names and word answers (months, "half", "1 hour"). */
+export function isSign(v: GateVisual): boolean {
+  return v.kind === 'day' || v.kind === 'word';
 }
 
 /** Draw a visual at the canvas origin: a square of side `size`, or a `size`-tall sign of visualAspect(v) × size. */
 export function drawGateVisual(ctx: CanvasRenderingContext2D, v: GateVisual, size: number, opts: DrawOpts): void {
   const s = size;
-  if (v.kind === 'day') {
+  if (v.kind === 'day' || v.kind === 'word') {
     ctx.save();
     ctx.clearRect(0, 0, s * visualAspect(v), s);
-    daySign(ctx, v.day, s * visualAspect(v), s, opts);
+    daySign(ctx, v.kind === 'day' ? dayName(v.day, opts.lang) : t(v.m, opts.lang), s * visualAspect(v), s, opts);
     ctx.restore();
     return;
   }
@@ -95,6 +100,8 @@ export function drawGateVisual(ctx: CanvasRenderingContext2D, v: GateVisual, siz
     case 'shape': shapeArt(ctx, v.shape, inner); break;
     case 'clock': clockArt(ctx, v.h, v.m, inner); break;
     case 'group': groupArt(ctx, v.e, opts.badge ? badgeRows(v.n) : groupRows(v.n), inner); break;
+    case 'expr': exprArt(ctx, `${v.a} + ${v.b}`, inner); break;
+    case 'parts': partsArt(ctx, v.n, inner); break;
     case 'blank': blankArt(ctx, inner); break;
   }
   ctx.restore();
@@ -153,6 +160,51 @@ function numberArt(ctx: CanvasRenderingContext2D, n: number, s: number) {
   ctx.strokeText(text, s / 2, s * 0.53);
   ctx.fillStyle = GATE_INK;
   ctx.fillText(text, s / 2, s * 0.53);
+}
+
+/** A sum to pick ("3 + 4"), as large as the disc allows. */
+function exprArt(ctx: CanvasRenderingContext2D, text: string, s: number) {
+  let fs = s * 0.4;
+  ctx.font = `800 ${fs}px ${FONT}`;
+  while (fs > s * 0.18 && ctx.measureText(text).width > s * 0.86) {
+    fs -= s * 0.01;
+    ctx.font = `800 ${fs}px ${FONT}`;
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.lineWidth = fs * 0.12;
+  ctx.strokeStyle = GATE_CREAM;
+  ctx.strokeText(text, s / 2, s * 0.53);
+  ctx.fillStyle = GATE_INK;
+  ctx.fillText(text, s / 2, s * 0.53);
+}
+
+/** A round pizza cut into n equal slices (equal shares). */
+function partsArt(ctx: CanvasRenderingContext2D, n: number, s: number) {
+  const c = s / 2;
+  const r = s * 0.4;
+  circle(ctx, c, c, r);
+  ctx.fillStyle = '#e9a83a';
+  ctx.fill();
+  circle(ctx, c, c, r * 0.86);
+  ctx.fillStyle = '#ffd27a';
+  ctx.fill();
+  circle(ctx, c, c, r);
+  ctx.lineWidth = s * 0.035;
+  ctx.strokeStyle = GATE_INK;
+  ctx.stroke();
+  for (let i = 0; i < n; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI * 2) / n;
+    ctx.beginPath();
+    ctx.moveTo(c, c);
+    ctx.lineTo(c + Math.cos(a) * r, c + Math.sin(a) * r);
+    ctx.stroke();
+    // a topping in the middle of each slice, so each part reads as one piece
+    const m = a + Math.PI / n;
+    circle(ctx, c + Math.cos(m) * r * 0.5, c + Math.sin(m) * r * 0.5, s * 0.045);
+    ctx.fillStyle = '#c0392b';
+    ctx.fill();
+  }
 }
 
 function emojiArt(ctx: CanvasRenderingContext2D, e: string, fs: number, x: number, y: number) {
@@ -254,6 +306,9 @@ function shapeArt(ctx: CanvasRenderingContext2D, shape: ShapeId, s: number) {
       return ink(ctx, s);
     case 'hexagon':
       polygon(ctx, c, c, s * 0.36, 6, 0);
+      return ink(ctx, s);
+    case 'octagon':
+      polygon(ctx, c, c, s * 0.38, 8, Math.PI / 8);
       return ink(ctx, s);
     case 'cube': return cubeArt(ctx, s);
     case 'sphere': return sphereArt(ctx, s);
@@ -416,10 +471,10 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 }
 
 /**
- * A day name on a rectangular garden sign: a wooden honey frame (when it is a gate badge) or a
+ * A day name (or another word answer) on a rectangular garden sign: a wooden honey frame (when it is a gate badge) or a
  * plain cream card (in a prompt picture), with the name as large as the sign allows.
  */
-function daySign(ctx: CanvasRenderingContext2D, day: number, w: number, h: number, opts: DrawOpts) {
+function daySign(ctx: CanvasRenderingContext2D, name: string, w: number, h: number, opts: DrawOpts) {
   const pad = h * 0.07;
   const r = h * 0.16;
   if (opts.badge) {
@@ -456,7 +511,6 @@ function daySign(ctx: CanvasRenderingContext2D, day: number, w: number, h: numbe
     ctx.strokeStyle = GATE_INK;
     ctx.stroke();
   }
-  const name = dayName(day, opts.lang);
   const maxW = w * (opts.badge ? 0.78 : 0.84);
   ctx.fillStyle = GATE_INK;
   ctx.textAlign = 'center';

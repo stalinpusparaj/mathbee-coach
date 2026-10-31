@@ -157,7 +157,8 @@ maths is always clear):
 
 - **3D garden** (`src/three/Garden3D.tsx`): low-poly hills, trees, flowers, a pond with a wooden bridge,
   a stepping-stone path and a flying bee. The 14 places are stages with the game's own art standing on
-  them. Drag to look around, pinch/scroll to zoom, tap a place (or its name label) to open it.
+  them. Drag to look around, pinch/scroll to zoom, tap a place (or its name label) to open it. Restored
+  garden items (daisies, toadstool, tulip and the rest) stand around it; tap one and it hops with a chime.
   Name labels are real buttons, so keyboard and screen readers work as before.
 - **3D journey** (`src/three/Journey3D.tsx`): floating islands lead to the friend at the end; the bee
   hops one island per finished question and the camera follows. Frames are drawn only while something
@@ -171,8 +172,10 @@ maths is always clear):
 ## Bee Flight (mini-game)
 
 A port of the "Fly & Train" prototype into the storybook theme. Open it with **🐝 Bee Flight** under a
-world map's header (testid `flight-<worldId>`) or in the garden map's quick row (`flight-btn`, which flies
-in the world of the child's adventure position, meadow at first).
+world map's header (testid `flight-<worldId>`) or from the **Bee Flight card** on the garden map (`flight-card`):
+it shows the current flight world (painted art, friend, name), its 0–3 stars and best streak 🔥, **Fly**
+(`flight-btn`), **Change world** (a picker of the 7 worlds) and **My garden** (Restore garden). The current
+world is the one chosen or flown last (`profile.flight.lastWorld`), otherwise the child's adventure world.
 
 - **Play:** Buzzy flies down a 3-lane path; the question is in the HUD (narrated, 🔊 to hear again) with a
   picture when needed. Steer with the big ◀ ▶ buttons, tap a lane, swipe, or ← → / Enter. Flying through a
@@ -181,14 +184,29 @@ in the world of the child's adventure position, meadow at first).
 - **No speed pressure:** a constant gentle pace that slows further near a gate row; streaks add only a
   sparkle trail and the combo chip. No timers, no lives. Back (gesture/Escape) during a run opens the pause sheet.
 - **Questions** (`src/flight/questions.ts`): seeded per world — meadow counting and next/before, river
-  comparing, orchard addition/make 10/doubles, ice subtraction, trail skip counting and patterns, town
+  comparing, orchard addition/make 10/doubles, ice subtraction, trail skip counting, patterns and **odd one
+  out** ("Which one is different?": shapes with/without corners, animal vs fruit, colour, or how many), town
   shapes (true 3D solids), analogue clocks and days, garden a mix of all. Exactly one correct gate; the
   answer never appears in the prompt.
+- **Honey trail (3D):** four honey drops in one lane before each row; flying through them adds to a 💛 tally
+  (no nectar, no speed change). The lane never hints at the answer, and Buzzy still waits at the row for a choice.
+- **Pause sheet:** Keep flying, Restart run (fresh gates; nothing paid twice), Change world, My garden, sound
+  and music toggles, Stop.
+- **Stars and best streak:** each world keeps its best finished flight (`profile.flight.best[world]`);
+  stars are 3 for 8/8 first try, 2 for 6 or more, 1 for finishing (`flightWorldSummary`). The grown-ups'
+  dashboard has a Bee Flight section (flights, gates, first-try share, best flight per world and one home
+  tip for the weakest world), with no time or speed figures.
+- **Home scene:** the Welcome card sits over a live 3D scene (`src/three/Home3D.tsx`): Buzzy hovering over
+  the current flight world's path. ≤30 fps, paused when hidden; reduced motion, *Flat 2D* or no WebGL show
+  the painted picture.
+- **Not ported on purpose:** the prototype's speed-up ("Ninja Bee Rush 2x") and the parents' average answer
+  time (see docs/KNOWN_LIMITATIONS.md).
 - **Rewards** (`src/flight/rewards.ts`): +1 nectar per gate (first try or with help), at most 16 flight
   nectar a day, idempotent per gate. Runs are stored in `profile.flight`; flights never write mastery attempts.
 - **Rendering:** `src/three/Flight3D.tsx` (painted world backdrop, gate badges drawn by `src/three/gateArt.ts`);
   a calm 2D version with three big gate buttons for reduced motion, no WebGL or *Flat 2D* graphics.
-- Tests: `tests/unit/flight-*.test.ts`, `tests/e2e/flight.spec.ts` (uses the `?e2e` hook `window.__mathbeeFlight`).
+- Tests: `tests/unit/flight-*.test.ts`, `tests/unit/garden-extra.test.ts`, `tests/unit/home3d.test.ts`,
+  `tests/e2e/flight.spec.ts` (uses the `?e2e` hook `window.__mathbeeFlight`) and `tests/e2e/home3d.spec.ts`.
 
 ## Motivation, gamification and effects
 

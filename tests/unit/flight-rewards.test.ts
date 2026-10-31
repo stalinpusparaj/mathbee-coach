@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { FLIGHT_DAILY_CAP, awardGate, canEarnFlightNectar, cleanFlightStats, emptyFlightStats, flightNectarToday, recordRun } from '../../src/flight/rewards';
+import { FLIGHT_DAILY_CAP, awardGate, canEarnFlightNectar, cleanFlightStats, emptyFlightStats, flightNectarToday, flightStars, flightWorldSummary, recordRun } from '../../src/flight/rewards';
 import { flightRun } from '../../src/flight/questions';
 import { exportPayload, emptyState, migrate, newProfile, validateImport } from '../../src/persistence/schema';
 import type { Profile } from '../../src/learning/types';
@@ -142,5 +142,79 @@ describe('flight totals in saves and imports', () => {
     }
     const bad = validateImport(JSON.parse(JSON.stringify(exportPayload({ ...st, profiles: [{ ...p, flight: [1] }] } as never, D))));
     expect(bad.ok).toBe(false);
+  });
+});
+
+describe('flight best streak and stars', () => {
+  const run = (world: 'meadow' | 'town' | 'ice', firstTry: number, bestCombo: number) => ({ world, date: D, gates: 8, firstTry, helped: 8 - firstTry, bestCombo });
+
+  it('keeps each world\'s best streak and best first-try count at their maxima, and the last world', () => {
+    let p = base();
+    p = recordRun(p, run('meadow', 5, 3), 'a');
+    expect(p.flight!.best).toEqual({ meadow: { combo: 3, firstTry: 5 } });
+    expect(p.flight!.lastWorld).toBe('meadow');
+    p = recordRun(p, run('meadow', 7, 2), 'b'); // more first tries, shorter streak
+    expect(p.flight!.best!.meadow).toEqual({ combo: 3, firstTry: 7 });
+    p = recordRun(p, run('meadow', 4, 4), 'c'); // longer streak, fewer first tries
+    expect(p.flight!.best!.meadow).toEqual({ combo: 4, firstTry: 7 });
+    p = recordRun(p, run('town', 8, 8), 'd');
+    expect(p.flight!.best!.town).toEqual({ combo: 8, firstTry: 8 });
+    expect(p.flight!.best!.meadow).toEqual({ combo: 4, firstTry: 7 });
+    expect(p.flight!.lastWorld).toBe('town');
+    // recording the same run again changes nothing
+    expect(recordRun(p, run('town', 8, 8), 'd')).toBe(p);
+  });
+
+  it('a streak can never be longer than the run\'s first tries; a missing streak counts as 0', () => {
+    let p = recordRun(base(), run('ice', 3, 99));
+    expect(p.flight!.best!.ice).toEqual({ combo: 3, firstTry: 3 });
+    p = recordRun(base(), { world: 'ice', date: D, gates: 8, firstTry: 2, helped: 6 });
+    expect(p.flight!.best!.ice).toEqual({ combo: 0, firstTry: 2 });
+    p = recordRun(base(), run('ice', 5, -4));
+    expect(p.flight!.best!.ice!.combo).toBe(0);
+  });
+
+  it('stars: never finished 0, finished 1, 6+ first try 2, all 8 first try 3', () => {
+    expect(flightStars(8, false)).toBe(0);
+    expect(flightStars(0, true)).toBe(1);
+    expect(flightStars(5, true)).toBe(1);
+    expect(flightStars(6, true)).toBe(2);
+    expect(flightStars(7, true)).toBe(2);
+    expect(flightStars(8, true)).toBe(3);
+  });
+
+  it('flightWorldSummary gives stars from the best run, the best streak and the runs per world', () => {
+    let p = base();
+    expect(flightWorldSummary(p, 'meadow')).toEqual({ stars: 0, bestCombo: 0, runs: 0 });
+    p = recordRun(p, run('meadow', 0, 0), 'a');
+    expect(flightWorldSummary(p, 'meadow')).toEqual({ stars: 1, bestCombo: 0, runs: 1 });
+    p = recordRun(p, run('meadow', 6, 4), 'b');
+    expect(flightWorldSummary(p, 'meadow')).toEqual({ stars: 2, bestCombo: 4, runs: 2 });
+    p = recordRun(p, run('meadow', 3, 1), 'c'); // a weaker run never takes stars away
+    expect(flightWorldSummary(p, 'meadow')).toEqual({ stars: 2, bestCombo: 4, runs: 3 });
+    p = recordRun(p, run('meadow', 8, 8), 'd');
+    expect(flightWorldSummary(p, 'meadow')).toEqual({ stars: 3, bestCombo: 8, runs: 4 });
+    expect(flightWorldSummary(p, 'town')).toEqual({ stars: 0, bestCombo: 0, runs: 0 });
+    expect(flightWorldSummary(p, 'moon' as never)).toEqual({ stars: 0, bestCombo: 0, runs: 0 });
+  });
+
+  it('older saves (totals without best) still give a star for a finished world', () => {
+    const p = { ...base(), flight: { ...emptyFlightStats(), runs: 2, gates: 16, firstTry: 9, byWorld: { ...emptyFlightStats().byWorld, river: 2 } } };
+    expect(flightWorldSummary(p, 'river')).toEqual({ stars: 1, bestCombo: 0, runs: 2 });
+  });
+
+  it('saves and imports keep good bests and repair bad ones', () => {
+    const c = cleanFlightStats({
+      runs: 3, gates: 24, firstTry: 10, byWorld: { meadow: 3 },
+      best: { meadow: { combo: 12, firstTry: 6 }, moon: { combo: 1, firstTry: 1 }, town: 'x', ice: { combo: -1, firstTry: 99 } },
+      lastWorld: 'meadow',
+    })!;
+    expect(c.best).toEqual({ meadow: { combo: 6, firstTry: 6 }, ice: { combo: 0, firstTry: 8 } });
+    expect(c.lastWorld).toBe('meadow');
+    expect(cleanFlightStats({ best: [1], lastWorld: 'moon' })).toEqual(emptyFlightStats());
+    const flown = recordRun(base(), run('town', 7, 5), 'r1');
+    const again = migrate(JSON.parse(JSON.stringify({ schemaVersion: 1, profiles: [flown], activeProfileId: 'p' }))).profiles[0];
+    expect(again.flight).toEqual(flown.flight);
+    expect(flightWorldSummary(again, 'town')).toEqual({ stars: 2, bestCombo: 5, runs: 1 });
   });
 });

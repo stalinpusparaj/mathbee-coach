@@ -160,6 +160,10 @@ export interface FlightStats {
   byWorld: Record<JourneyTheme, number>;
   /** last run recorded (makes recording idempotent) */
   lastRunId?: string;
+  /** best finished run per world: longest first-try streak and most first-try gates (each kept at its maximum) */
+  best?: Partial<Record<JourneyTheme, { combo: number; firstTry: number }>>;
+  /** world chosen on the garden card or flown last (the garden map's "current flight world" and the home scene) */
+  lastWorld?: JourneyTheme;
 }
 
 export interface MockConfig {

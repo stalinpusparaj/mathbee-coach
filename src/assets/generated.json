@@ -40,6 +40,36 @@
   "sourceRect": []
  },
  {
+  "id": "garden_butterflies",
+  "file": "assets/generated/garden_butterflies.webp",
+  "width": 360,
+  "height": 342,
+  "kind": "sprite",
+  "alt": "Butterflies",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "garden_fountain",
+  "file": "assets/generated/garden_fountain.webp",
+  "width": 346,
+  "height": 360,
+  "kind": "sprite",
+  "alt": "Fountain",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "mushroom",
+  "file": "assets/generated/mushroom.webp",
+  "width": 321,
+  "height": 360,
+  "kind": "sprite",
+  "alt": "Red-capped garden mushroom",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
   "id": "world_garden",
   "file": "assets/generated/world_garden.webp",
   "width": 1376,

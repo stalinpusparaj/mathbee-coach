@@ -2,9 +2,9 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import {
-  Flight2D, FlightScreen, LANES, SWIPE_PX, backRouteFor, flightTheme, flyThrough, laneFromPoint, laneWordsOk, lookPick, runStart, steer, swipeDir,
+  Flight2D, FlightScreen, LANES, SWIPE_PX, backRouteFor, flightTheme, flyThrough, laneFromPoint, laneWordsOk, lookPick, runStart, steer, swipeDir, worldIdForTheme,
 } from '../../src/screens/FlightScreen';
-import { CRUISE_SPEED, HOLD_AT, LANE_X, NEAR_SPEED, SLOW_FROM, badgeScale, flightSpeed, laneAt, rowSpeed } from '../../src/three/Flight3D';
+import { CRUISE_SPEED, GATE_GAP, HOLD_AT, HONEY_DROPS, HONEY_FROM, HONEY_STEP, LANE_X, NEAR_SPEED, SLOW_FROM, badgeScale, flightSpeed, honeyLane, laneAt, rowSpeed } from '../../src/three/Flight3D';
 import { badgeRows, clockAngles, drawGateVisual, groupRows, visualAspect, visualText } from '../../src/three/gateArt';
 import { correctLane, flightQuestion } from '../../src/flight/questions';
 import { GATES_PER_RUN, type GateVisual } from '../../src/flight/types';
@@ -104,6 +104,38 @@ describe('run state', () => {
     expect(s.phase).toBe('finish');
     expect(s.firstTry).toBe(GATES_PER_RUN);
     expect(s.index).toBe(GATES_PER_RUN - 1);
+    expect(s.bestCombo).toBe(GATES_PER_RUN);
+  });
+
+  it('keeps the run\'s best streak when a different gate quietly resets the streak', () => {
+    let s = runStart(11, 'fly');
+    // first try, first try, a look, then first try
+    const plan = ['right', 'right', 'other', 'right'];
+    for (const step of plan) {
+      const qi = flightQuestion('meadow', 11, s.index);
+      const r = correctLane(qi);
+      if (step === 'right') s = flyThrough(s, qi, r).state;
+      else {
+        s = flyThrough(s, qi, (r + 1) % 3).state;
+        s = lookPick(s, qi, r).state;
+      }
+    }
+    expect(s.combo).toBe(1);
+    expect(s.bestCombo).toBe(2);
+    expect(runStart(5).bestCombo).toBe(0);
+  });
+});
+
+describe('the pause sheet\'s world picker', () => {
+  it('opens each flight world through its adventure world id', () => {
+    expect(worldIdForTheme('meadow')).toBe('w1');
+    expect(worldIdForTheme('river')).toBe('w2');
+    expect(worldIdForTheme('orchard')).toBe('w3');
+    expect(worldIdForTheme('ice')).toBe('w4');
+    expect(worldIdForTheme('trail')).toBe('w5');
+    expect(worldIdForTheme('town')).toBe('w6');
+    expect(worldIdForTheme('garden')).toBe('w7');
+    for (const w of ['meadow', 'river', 'orchard', 'ice', 'trail', 'town', 'garden'] as const) expect(flightTheme(worldIdForTheme(w))).toBe(w);
   });
 });
 
@@ -128,6 +160,27 @@ describe('3D flight pace (no speed pressure)', () => {
     expect(laneAt(0.3)).toBe(1);
     expect(laneAt(LANE_X[2] - 0.5)).toBe(2);
     expect(laneAt(-99)).toBe(0);
+  });
+
+  it('honey drops: one stable lane per row, not tied to the right gate, met before the slow reading zone', () => {
+    const counts = [0, 0, 0];
+    let sameAsRight = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const q = flightQuestion('meadow', seed, seed % GATES_PER_RUN);
+      const l = honeyLane(q.id);
+      expect(l).toBe(honeyLane(q.id));
+      expect(l).toBeGreaterThanOrEqual(0);
+      expect(l).toBeLessThan(3);
+      counts[l]++;
+      if (l === correctLane(q)) sameAsRight++;
+    }
+    for (const c of counts) expect(c).toBeGreaterThan(50);
+    // roughly a third: the trail is never a hint
+    expect(sameAsRight).toBeGreaterThan(50);
+    expect(sameAsRight).toBeLessThan(160);
+    // the last drop is behind Buzzy while the row is still farther than the slow zone
+    expect(GATE_GAP - HONEY_FROM).toBeGreaterThan(SLOW_FROM);
+    expect(HONEY_FROM + (HONEY_DROPS - 1) * HONEY_STEP).toBeLessThan(GATE_GAP);
   });
 });
 
@@ -260,5 +313,32 @@ describe('the lane chip never does the looking for the child', () => {
     expect(laneWordsOk('compare', { kind: 'number', n: 7 })).toBe(false);
     expect(laneWordsOk('shape3d', { kind: 'shape', shape: 'cube' })).toBe(false);
     expect(laneWordsOk('shape2d', { kind: 'number', n: 4 })).toBe(false);
+    expect(laneWordsOk('odd', { kind: 'emoji', e: '🍎' })).toBe(false);
+  });
+});
+
+describe('flight results card helpers', () => {
+  it('the next goal is the next star, then the next world (never losing language)', async () => {
+    const { nextGoal } = await import('../../src/screens/FlightScreen');
+    expect(nextGoal(1, 'meadow')).toEqual({ key: 'flightui.goal.stars', p: { n: 6, s: 2 } });
+    expect(nextGoal(2, 'meadow')).toEqual({ key: 'flightui.goal.stars', p: { n: 8, s: 3 } });
+    expect(nextGoal(3, 'meadow')).toEqual({ key: 'flightui.goal.world', p: { world: 'river' } });
+    expect(nextGoal(3, 'garden')).toEqual({ key: 'flightui.goal.world', p: { world: 'meadow' } });
+  });
+
+  it('"New best!" only when stars or the best streak beat an earlier flight in that world', async () => {
+    const { isNewBest } = await import('../../src/screens/FlightScreen');
+    expect(isNewBest(null, 3, 8)).toBe(false);
+    expect(isNewBest({ stars: 0, bestCombo: 0, runs: 0 }, 3, 8)).toBe(false);
+    expect(isNewBest({ stars: 1, bestCombo: 4, runs: 2 }, 2, 4)).toBe(true);
+    expect(isNewBest({ stars: 2, bestCombo: 4, runs: 2 }, 2, 5)).toBe(true);
+    expect(isNewBest({ stars: 3, bestCombo: 8, runs: 5 }, 3, 8)).toBe(false);
+  });
+
+  it('word and sum gates may be read aloud, even in look-only skills', async () => {
+    const { laneWordsOk } = await import('../../src/screens/FlightScreen');
+    expect(laneWordsOk('clock', { kind: 'word', m: { k: 'flight.time.half', p: { h: 3 } } })).toBe(true);
+    expect(laneWordsOk('whichMakes', { kind: 'expr', a: 3, b: 4 })).toBe(true);
+    expect(laneWordsOk('clock', { kind: 'clock', h: 3, m: 30 })).toBe(false);
   });
 });

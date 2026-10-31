@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type CSSProperties } from 'react';
 import { store, useProfile } from '../app/store';
 import { launch, launchLevel, restoreItem } from '../app/actions';
-import { useT } from '../i18n/useT';
+import { useLang, useT } from '../i18n/useT';
+import { narrationAvailable, speak } from '../audio/speech';
 import { CATEGORIES, CATEGORY_BY_ID, GARDEN_ITEMS, SUBSKILLS, ASSESSMENT_ORDER } from '../curriculum/curriculum';
 import { evaluateAll, categoryBloom, isSecure, STATE_RANK } from '../learning/mastery';
 import { dueReviews } from '../learning/review';
@@ -16,6 +17,7 @@ import { hasSprite, spriteUrl, pickSprite } from '../assets/manifest';
 import { LevelBadge, RewardReveal, CountUp } from './RewardScreens';
 import { displayName } from '../learning/gamification';
 import { MusicToggle } from '../components/MusicToggle';
+import { sfx } from '../audio/sfx';
 import { JourneyFinale } from '../components/JourneyTrack';
 import { themeFor } from '../activities/journey';
 import type { CategoryId, Stage } from '../engine/types';
@@ -24,7 +26,125 @@ import { Garden3D, With3D } from '../three/Lazy3D';
 import { QuestCard, GiftBox, RestNote, HatBee, FriendFace } from '../components/Fun';
 import { currentHat, friendsMet } from '../learning/fun';
 import { STAGES } from '../engine/types';
-import type { SessionRecord } from '../learning/types';
+import type { Profile, SessionRecord } from '../learning/types';
+import { Modal } from '../components/ui';
+import { worldVars, type JourneyTheme } from '../activities/journey';
+import { emptyFlightStats, flightWorldSummary } from '../flight/rewards';
+import { worldIdForTheme } from './FlightScreen';
+import { FLIGHT_WORLD_ORDER } from '../report/flightReport';
+
+/**
+ * The garden card's flight world: the one chosen last (picker or last finished flight), else the
+ * world of the child's adventure position. Unknown values fall back.
+ */
+/**
+ * The world of the child's adventure position (next unplayed level, else the last one played;
+ * meadow at first): the flight world when none has been chosen yet. Shared by the garden card
+ * and the home scene so both always show the same "current flight world".
+ */
+export function adventureFlightWorld(profile: Profile, ev: ReturnType<typeof evaluateAll>): JourneyTheme {
+  const nextLevel = profile.familiarised ? nextLevelId(profile, ev) : null;
+  return WORLD_BY_ID[LEVEL_BY_ID[nextLevel ?? profile.adventure?.lastLevelId ?? '']?.world]?.theme ?? 'meadow';
+}
+
+/** The current flight world with its fallback worked out from the profile (home scene, garden card). */
+export function homeFlightWorld(profile: Profile): JourneyTheme {
+  if (profile.flight?.lastWorld && FLIGHT_WORLD_ORDER.includes(profile.flight.lastWorld)) return profile.flight.lastWorld;
+  return adventureFlightWorld(profile, evaluateAll(profile.attempts, profile.settings.mastery));
+}
+
+export function currentFlightWorld(p: Pick<Profile, 'flight'>, fallback: JourneyTheme): JourneyTheme {
+  const w = p.flight?.lastWorld;
+  return w && FLIGHT_WORLD_ORDER.includes(w) ? w : fallback;
+}
+
+/** Choose the next flight world (kept as `flight.lastWorld`, the same field a finished flight sets). */
+export function withNextFlightWorld<P extends Pick<Profile, 'flight'>>(p: P, world: JourneyTheme): P {
+  if (!FLIGHT_WORLD_ORDER.includes(world)) return p;
+  return { ...p, flight: { ...(p.flight ?? emptyFlightStats()), lastWorld: world } };
+}
+
+/**
+ * The stars earned in a flight world, earned ones only (like the world picker): no hollow ☆ that
+ * would read as missed stars. An unflown world says "new" instead, so there is never an empty score.
+ */
+function FlightStars({ n, runs }: { n: 0 | 1 | 2 | 3; runs: number }) {
+  const t = useT();
+  if (!runs && !n) return <span className="gx-new">{t('gx.newWorld')}</span>;
+  return (
+    <span className="gx-stars" role="img" aria-label={t('gx.stars', { n })} data-testid="flight-card-stars" data-stars={n}>
+      {Array.from({ length: n }, (_, i) => <span key={i} className="on" aria-hidden>★</span>)}
+    </span>
+  );
+}
+
+/** The garden map's "Bee Flight" card: the current flight world, its stars and best streak, Fly, Change world, My garden. */
+function FlightCard({ profile, fallback }: { profile: Profile; fallback: JourneyTheme }) {
+  const t = useT();
+  const [picking, setPicking] = useState(false);
+  const theme = currentFlightWorld(profile, fallback);
+  const sum = flightWorldSummary(profile, theme);
+  const art = spriteUrl(`world_${theme}`);
+  const style = { ...worldVars(theme), ...(art ? { '--world-art': `url(${art})` } : {}) } as CSSProperties;
+  // narration (when on): world names are words a pre-reader cannot read alone
+  const lang = useLang();
+  const canNarrate = !!profile.settings.narration && narrationAvailable(lang);
+  const say = (text: string) => { if (canNarrate) speak(text, lang); };
+  const worldName = (w: JourneyTheme) => t(WORLD_BY_ID[worldIdForTheme(w)].nameKey);
+  const cardLine = `${t('gx.current')}: ${worldName(theme)}.${sum.runs ? '' : ` ${t('gx.newWorld')}`}`;
+  const pick = (w: JourneyTheme) => {
+    store.updateProfile((p) => withNextFlightWorld(p, w));
+    setPicking(false);
+    say(worldName(w));
+  };
+  const openPicker = () => {
+    setPicking(true);
+    say(t('flightui.pickWorld'));
+  };
+  return (
+    <section className={`gx-flight ${art ? 'has-art' : ''}`} style={style} aria-label={t('gx.card')} data-testid="flight-card" data-world={theme}>
+      <div className="gx-art" aria-hidden>
+        <FriendFace theme={theme} size={64} />
+      </div>
+      <div className="gx-body">
+        <p className="small gx-kicker">🐝 {t('gx.current')}
+          <button type="button" className="icon-btn gx-hear" onClick={() => speak(cardLine, lang)} disabled={!canNarrate} aria-label={t('flight.hear')} title={canNarrate ? t('flight.hear') : t('ui.noVoice')} data-testid="flight-card-hear">🔊</button>
+        </p>
+        <h2 className="gx-name">{t(WORLD_BY_ID[worldIdForTheme(theme)].nameKey)}</h2>
+        <div className="gx-stats">
+          <FlightStars n={sum.stars} runs={sum.runs} />
+          {sum.bestCombo >= 1 && <span className="gx-streak" data-testid="flight-card-streak">{t('gx.bestStreak', { n: sum.bestCombo })}</span>}
+        </div>
+        <div className="gx-actions">
+          {/* a theme name (not a world id) keeps "back" on the garden map */}
+          <button type="button" className="btn primary big" onClick={() => store.setRoute({ name: 'flight', world: theme })} data-testid="flight-btn">🐝 {t('gx.fly')}</button>
+          <button type="button" className="btn secondary" onClick={openPicker} data-testid="flight-card-world">🗺️ {t('gx.changeWorld')}</button>
+          <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'restore' })} data-testid="restore">🌷 {t('gx.myGarden')}</button>
+        </div>
+      </div>
+      {picking && (
+        <Modal title={t('flightui.pickWorld')} onClose={() => setPicking(false)}>
+          <div className="gx-worlds" role="list">
+            {FLIGHT_WORLD_ORDER.map((w) => {
+              const here = w === theme;
+              const s = flightWorldSummary(profile, w);
+              return (
+                <button key={w} type="button" role="listitem" className={`gx-world ${here ? 'here' : ''}`} style={worldVars(w) as CSSProperties}
+                  onClick={() => pick(w)} aria-current={here || undefined} data-testid={`flight-world-${w}`}>
+                  <FriendFace theme={w} size={44} />
+                  <span className="gx-world-name">{t(WORLD_BY_ID[worldIdForTheme(w)].nameKey)}</span>
+                  {s.stars > 0 && <span className="gx-world-stars" aria-label={t('gx.stars', { n: s.stars })}>{'★'.repeat(s.stars)}</span>}
+                  {here && <span className="small gx-world-here">{t('gx.picked')}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" className="btn small secondary" onClick={() => setPicking(false)} data-testid="flight-world-back">{t('flightui.backToPause')}</button>
+        </Modal>
+      )}
+    </section>
+  );
+}
 
 function Flowers({ n, label }: { n: number; label: string }) {
   return (
@@ -53,9 +173,9 @@ export function GardenMapScreen() {
   // the adventure path is the child's main way forward; practice missions stay one tap away
   const nextLevel = profile.familiarised ? nextLevelId(profile, ev) : null;
   const recommendedCat = unscreened[0];
-  // Bee Flight from the garden flies in the world of the child's adventure position (meadow at first);
-  // a theme name (not a world id) keeps "back" on the garden map
-  const flightWorld = WORLD_BY_ID[LEVEL_BY_ID[nextLevel ?? profile.adventure?.lastLevelId ?? '']?.world]?.theme ?? 'meadow';
+  // Bee Flight from the garden flies in the chosen world, else the world of the child's adventure
+  // position (meadow at first)
+  const flightWorld = adventureFlightWorld(profile, ev);
   const mapArt = { wide: spriteUrl('bg_map_wide'), tall: spriteUrl('bg_map_tall') };
 
   const map2d = (
@@ -126,14 +246,14 @@ export function GardenMapScreen() {
         </div>
       </section>
 
+      <FlightCard profile={profile} fallback={flightWorld} />
+
       <QuestCard profile={profile} />
       <GiftBox profile={profile} />
 
       <nav className="quick-row" aria-label={t('ui.activities')}>
         <button type="button" className="btn secondary" onClick={() => launch('daily')} data-testid="daily">{t('ui.dailyPractice')}</button>
         <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'review-due' })} data-testid="review">{t('ui.review')} {due > 0 && <span className="count">{due}</span>}</button>
-        <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'restore' })} data-testid="restore">{t('ui.restoreGarden')}</button>
-        <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'flight', world: flightWorld })} data-testid="flight-btn">🐝 {t('flight.title')}</button>
       </nav>
 
       {listView ? (
@@ -162,6 +282,7 @@ export function GardenMapScreen() {
               recommended={recommendedCat}
               owned={profile.garden}
               onOpen={(c) => store.setRoute({ name: 'category', category: c })}
+              onItem={() => { if (profile.settings.sound !== false) sfx.chime(); }}
               label={t('ui.gardenMap')}
               hint={t('ui.drag3d')}
               friends={friendsMet(profile)}

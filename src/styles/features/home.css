@@ -1,0 +1,16 @@
+/* ---------- live 3D home scene behind the Welcome card (src/three/Home3D.tsx) ---------- */
+/* the painted picture stays on .welcome underneath: it shows until the scene fades in, and if 3D fails */
+.welcome { position: relative; isolation: isolate; overflow: hidden; }
+.home3d { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0; transition: opacity 0.7s ease; }
+.home3d.on { opacity: 1; }
+.home3d-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+/* a soft cream wash behind the card so its text stays easy to read over the moving scene */
+.home3d-wash {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 62% 72% at 50% 50%, rgba(255, 248, 232, 0.72) 0%, rgba(255, 248, 232, 0.38) 55%, rgba(255, 248, 232, 0) 100%),
+    /* the near ground at the very bottom is magnified and soft: a gentle cream fade keeps it calm */
+    linear-gradient(to bottom, rgba(255, 248, 232, 0) 72%, rgba(255, 248, 232, 0.55) 100%);
+}
+.reduce-motion .home3d { transition: none; }
+@media (prefers-reduced-motion: reduce) { html:not(.full-motion) .home3d { transition: none; } }

@@ -151,4 +151,8 @@ export const GARDEN_ITEMS: { id: string; sprite: string; cost: number; x: number
   { id: 'birdhouse', sprite: 'garden_birdhouse', cost: 9, x: 96, y: 36 },
   { id: 'arch', sprite: 'garden_arch', cost: 11, x: 3, y: 34 },
   { id: 'fountain', sprite: 'garden_fountain', cost: 14, x: 60, y: 54 },
+  // from the Fly & Train shop (daisy 20 / mushroom 30 / tulip 40 there), priced for this economy
+  { id: 'daisy', sprite: 'daisy', cost: 7, x: 22, y: 58 },
+  { id: 'mushroom', sprite: 'mushroom', cost: 9, x: 92, y: 8 },
+  { id: 'tulip', sprite: 'tulip', cost: 10, x: 48, y: 28 },
 ];

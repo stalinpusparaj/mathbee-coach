@@ -5,6 +5,7 @@ import { markWebglLost } from './support';
 export const Garden3D = lazy(() => import('./Garden3D'));
 export const Journey3D = lazy(() => import('./Journey3D'));
 export const Flight3D = lazy(() => import('./Flight3D'));
+export const Home3D = lazy(() => import('./Home3D'));
 
 /**
  * If the 3D view fails (lost WebGL context, old GPU), quietly show the flat version instead,

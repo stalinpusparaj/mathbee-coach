@@ -24,6 +24,11 @@
   background: var(--white); white-space: nowrap;
 }
 .f-nectar { font-size: 1.05rem; white-space: nowrap; }
+/* honey drops caught on the way (a tally only) */
+.f-honey {
+  font-weight: 900; font-size: .8rem; padding: 2px 8px; border-radius: 999px; border: 2px solid var(--ink);
+  background: #fff3c4; white-space: nowrap;
+}
 
 /* ---------- prompt card ---------- */
 .f-prompt {
@@ -155,6 +160,37 @@
   .fr-blooms { font-size: 1.5rem; }
 }
 
+/* ---------- results streak, pause sheet and world picker ---------- */
+.fr-streak { margin: 0; font-weight: 900; }
+.fr-stars { margin: 0; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 2rem; color: var(--honey-dark, #b7830d); line-height: 1.1; }
+.fr-stars-title { font-size: 1.05rem; font-weight: 900; color: var(--ink, #3d2b1f); margin-left: 8px; }
+.fr-newbest { margin: 0; align-self: center; padding: 4px 14px; border-radius: 999px; background: #ffe07a; color: #3d2b1f; font-weight: 900; }
+.fr-goal { margin: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .fr-newbest { animation: fr-pop 0.5s ease-out both; }
+  @keyframes fr-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+}
+.f-pause .btn { min-height: 56px; }
+.f-pause .f-audio { display: flex; flex-wrap: wrap; gap: 8px; }
+.f-pause .f-audio .btn { flex: 1 1 140px; }
+.f-worlds {
+  /* wrapping flex, not a grid: grid rows in this scroll box were sized before the "here" line wrapped */
+  display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px;
+  padding: 2px;
+}
+.f-world {
+  flex: 1 1 180px;
+  /* a grid, not a wrapping flex row: the "here" line then always counts toward the button's height */
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 2px; min-height: 64px; padding: 6px 10px; text-align: left;
+  font: inherit; font-weight: 800; color: var(--world-ink, var(--ink)); cursor: pointer;
+  background: linear-gradient(180deg, var(--world-sky, var(--sky)), var(--world-sky-2, var(--cream)));
+  border: 3px solid var(--ink); border-radius: 16px; box-shadow: var(--shadow);
+}
+.f-world.here { outline: 4px solid var(--world-accent, var(--honey, #f7bf35)); outline-offset: 1px; }
+.f-world:focus-visible { outline: 4px solid var(--ink); outline-offset: 2px; }
+.f-world-name { min-width: 0; line-height: 1.2; }
+.f-world-here { grid-column: 1 / -1; font-weight: 700; }
+
 /* ---------- reduced motion: nothing moves, everything stays readable ---------- */
 html.reduce-motion .f2-bob, html.reduce-motion .fi-bee, html.reduce-motion .f2-arrive,
 html.reduce-motion .fr-bloom, html.reduce-motion .f-cheer { animation: none; }
@@ -176,8 +212,9 @@ html.reduce-motion .f2-gate.on { transform: none; }
 .flight-entry .fe-hint { font-size: 0.9rem; font-weight: 700; opacity: 0.9; }
 
 /* day names on wide rectangular signs (2:1) so long names stay readable on a phone */
-.gate-art.kind-day { aspect-ratio: 2; }
-.f-picture .gate-art.kind-day { width: 112px; height: 56px; }
-.f-picture.n1 .gate-art.kind-day { width: 200px; height: 100px; }
-.f2-gate .gate-art.kind-day { width: 100%; max-width: 200px; aspect-ratio: 2; }
-.fl-choice .gate-art.kind-day { width: 100%; height: auto; aspect-ratio: 2; }
+.gate-art.kind-day, .gate-art.kind-word { aspect-ratio: 2; }
+.f-picture .gate-art.kind-day, .f-picture .gate-art.kind-word { width: 112px; height: 56px; }
+.f-picture.n1 .gate-art.kind-day, .f-picture.n1 .gate-art.kind-word { width: 200px; height: 100px; }
+.f2-gate .gate-art.kind-day, .f2-gate .gate-art.kind-word { width: 100%; max-width: 200px; aspect-ratio: 2; }
+.fl-choice .gate-art.kind-day, .fl-choice .gate-art.kind-word { width: 100%; height: auto; aspect-ratio: 2; }
+.f-picture .gate-art.kind-parts { width: 120px; height: 120px; }

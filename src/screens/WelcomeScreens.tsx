@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { store, useProfile, useStore } from '../app/store';
 import { createProfile, selectProfile, markFamiliarised } from '../app/actions';
 import { useT } from '../i18n/useT';
@@ -10,6 +10,11 @@ import { Keypad } from '../components/AnswerPanel';
 import { MusicToggle } from '../components/MusicToggle';
 import { sfx } from '../audio/sfx';
 import { spriteUrl, pickSprite } from '../assets/manifest';
+import { currentHat } from '../learning/fun';
+import { prefersReduced } from '../fx/juice';
+import { use3D } from '../three/support';
+import { Home3D, With3D } from '../three/Lazy3D';
+import { homeFlightWorld } from './GardenScreens';
 
 export const AVATARS = ['bee', 'rabbit_helper', 'squirrel_gardener', 'penguin', 'frog', 'hedgehog', 'owl_keeper', 'beaver'];
 
@@ -20,9 +25,20 @@ export function WelcomeScreen() {
   const profile = useProfile();
   const sound = profile?.settings.sound ?? true;
   const bg = spriteUrl(pickSprite('bg_welcome', 'garden_scenery'));
+  // the live home scene (Buzzy over the current flight world's path); reduced motion, 2D graphics or
+  // no WebGL keep the painted picture, which also shows until the scene is ready or if it fails
+  const live3d = use3D() && !prefersReduced();
+  const card = useRef<HTMLDivElement>(null);
+  // the same current flight world as the garden card (chosen / last flown, else the adventure position)
+  const world = useMemo(() => (profile ? homeFlightWorld(profile) : 'meadow'), [profile]);
   return (
     <div className="screen welcome" style={bg ? { backgroundImage: `linear-gradient(rgba(255,248,232,.55), rgba(255,248,232,.9)), url(${bg})` } : undefined}>
-      <div className="welcome-card">
+      {live3d && (
+        <With3D flat={null}>
+          <Home3D avoid={card} world={world} hat={profile ? currentHat(profile) : null} label={t('home.scene')} />
+        </With3D>
+      )}
+      <div className="welcome-card" ref={card}>
         <Sprite id="bee" size={120} className="bee-idle" decorative />
         <h1 className="logo">Number <span>Garden</span></h1>
         <p className="tagline">{t('ui.tagline')}</p>

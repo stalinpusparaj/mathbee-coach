@@ -292,6 +292,13 @@
       "aspect": "16:9",
       "alt": "Queen Bee's golden hive garden (adventure world background)",
       "prompt": "Queen Bee's golden hive garden background scene, calm open middle, no characters, no text."
+    },
+    {
+      "id": "mushroom",
+      "kind": "sprite",
+      "aspect": "1:1",
+      "alt": "Red-capped garden mushroom",
+      "prompt": "A single cute garden mushroom with a red spotted cap, same painterly style as the characters."
     }
   ]
 }

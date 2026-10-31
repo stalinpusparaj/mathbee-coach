@@ -17,6 +17,12 @@ import { canPrint, printPage, saveTextFile, shareTextFile } from '../app/platfor
 import { inShell, installVoice, onVoicesChange } from '../app/shell';
 import { pushOverlay } from '../app/backNav';
 import { music } from '../audio/music';
+import { flightInsights } from '../report/flightReport';
+import { GATES_PER_RUN } from '../flight/types';
+import { WORLD_BY_ID } from '../adventure/levels';
+import { worldIdForTheme } from './FlightScreen';
+import { FriendFace } from '../components/Fun';
+import type { Profile } from '../learning/types';
 
 const pct = (c: number, n: number) => (n ? `${c}/${n} (${Math.round((100 * c) / n)}%)` : '—');
 
@@ -160,6 +166,8 @@ export function ParentDashboard() {
         <FluencyOffers />
       </section>
 
+      <FlightSection profile={profile} />
+
       <section className="card">
         <h2>{t('p.history')}</h2>
         <ul className="history">
@@ -192,6 +200,45 @@ export function ParentDashboard() {
         <p className="small muted">{t('p.masteryNote', { c: profile.settings.mastery.correct, w: profile.settings.mastery.window })}</p>
       </details>
     </div>
+  );
+}
+
+/** Bee Flight for grown-ups: flights, gates and the best first-try share per world, plus one tip. Never speed. */
+function FlightSection({ profile }: { profile: Profile }) {
+  const t = useT();
+  const fl = useMemo(() => flightInsights(profile), [profile]);
+  const worldName = (w: (typeof fl.rows)[number]['world']) => t(WORLD_BY_ID[worldIdForTheme(w)].nameKey);
+  return (
+    <section className="card gx-parent" data-testid="parent-flight">
+      <h2>🐝 {t('gx.p.title')}</h2>
+      <p className="small muted">{t('gx.p.note')}</p>
+      {fl.runs === 0 ? <p className="muted">{t('gx.p.none')}</p> : (
+        <>
+          <p data-testid="parent-flight-totals">{t('gx.p.totals', { runs: fl.runs, gates: fl.gates, pct: fl.firstTryPct ?? 0 })}</p>
+          <ul className="gx-bars">
+            {fl.rows.map((r) => (
+              <li key={r.world} className={r.runs ? '' : 'unflown'} data-testid={`parent-flight-${r.world}`}>
+                <span className="gx-bar-label"><FriendFace theme={r.world} size={28} /> {worldName(r.world)}</span>
+                <span className="gx-bar" role="img"
+                  aria-label={r.bestFirstTry === null ? t(r.runs ? 'gx.p.oldDetail' : 'gx.p.noDetail') : t('gx.p.best', { n: r.bestFirstTry, total: GATES_PER_RUN })}>
+                  <span className="gx-bar-fill" style={{ width: `${Math.round(100 * (r.share ?? 0))}%` }} />
+                </span>
+                <span className="small gx-bar-text">
+                  {r.runs ? `${t('gx.p.row', { runs: r.runs, gates: r.gates })} · ` : ''}
+                  {r.bestFirstTry === null ? t(r.runs ? 'gx.p.oldDetail' : 'gx.p.noDetail') : t('gx.p.best', { n: r.bestFirstTry, total: GATES_PER_RUN })}
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="gx-tip" data-testid="parent-flight-tip">
+            <h3>{t('gx.p.tipTitle')}</h3>
+            {fl.weakest ? (
+              <p>{t('gx.p.tipWorld', { world: worldName(fl.weakest) })} {t(`gx.p.tip.${fl.weakest}`)}</p>
+            ) : <p>{t('gx.p.allGood')}</p>}
+          </div>
+        </>
+      )}
+    </section>
   );
 }
 

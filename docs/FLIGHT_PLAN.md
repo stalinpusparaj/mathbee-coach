@@ -1,6 +1,6 @@
 # Bee Flight mini-game (port of "Fly & Train")
 
-Source prototype: `~/Downloads/index (1).html` (single HTML file, three.js r128 + Tailwind CDN). Read it for the
+Source prototype: `~/Downloads/index (1).html` (now overwritten; use `~/Downloads/index.html`) (single HTML file, three.js r128 + Tailwind CDN). Read it for the
 mechanics; do NOT copy its CDN/Tailwind approach, its speed-up, or its bugs. Build it inside this React + TS +
 three.js 0.186 app, in the existing painted storybook theme.
 

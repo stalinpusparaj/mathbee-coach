@@ -10,18 +10,19 @@ import { sfx, setSfxWorld } from '../audio/sfx';
 import { music } from '../audio/music';
 import { celebrateCorrect, haptic, installTapJuice, prefersReduced } from '../fx/juice';
 import { Modal } from '../components/ui';
+import { MusicToggle } from '../components/MusicToggle';
 import { Sprite } from '../components/art';
 import { ComboChip, FriendFace, HatBee } from '../components/Fun';
 import { pickSprite, spriteUrl } from '../assets/manifest';
 import { worldVars } from '../activities/journey';
-import { WORLD_BY_ID, type WorldDef } from '../adventure/levels';
+import { STORY_WORLDS, WORLD_BY_ID, type WorldDef } from '../adventure/levels';
 import { COMBO_MILESTONES, currentHat } from '../learning/fun';
 import { displayName } from '../learning/gamification';
 import { todayStr } from '../learning/dates';
 import type { WorldId } from '../learning/types';
 import { GATES_PER_RUN, type FlightQuestion, type FlightSkill, type FlightWorld, type GateVisual } from '../flight/types';
 import { correctLane, flightQuestion, gateAria, pictureAria, visualKey, visualLabel } from '../flight/questions';
-import { awardGate, canEarnFlightNectar, recordRun } from '../flight/rewards';
+import { awardGate, canEarnFlightNectar, flightStars, flightWorldSummary, recordRun, type FlightWorldSummary } from '../flight/rewards';
 import { drawGateVisual, visualAspect } from '../three/gateArt';
 import { Flight3D, With3D } from '../three/Lazy3D';
 import { use3D } from '../three/support';
@@ -66,6 +67,11 @@ export function swipeDir(dx: number, dy: number): -1 | 0 | 1 {
 
 const FLIGHT_THEMES: FlightWorld[] = ['meadow', 'river', 'orchard', 'ice', 'trail', 'town', 'garden'];
 
+/** The adventure world (w1…w7) whose flight is `theme`: the route id the world picker opens. */
+export function worldIdForTheme(theme: FlightWorld): WorldId {
+  return STORY_WORLDS.find((id) => WORLD_BY_ID[id].theme === theme) ?? 'w7';
+}
+
 /** The flight world for a route's world: an adventure world id (w1…w7, bonus) or a theme name. */
 export function flightTheme(world: string): FlightWorld {
   const def = (WORLD_BY_ID as Record<string, WorldDef | undefined>)[world];
@@ -76,6 +82,23 @@ export function flightTheme(world: string): FlightWorld {
 /** Where "Back to the world" (and Stop) leads: that world's map, or the garden map. */
 export function backRouteFor(world: string): Route {
   return world in WORLD_BY_ID ? { name: 'adventure-world', world: world as WorldId } : { name: 'map' };
+}
+
+/**
+ * The results card's next goal (the prototype's "next goal" line), always as something to look
+ * forward to: more first-try gates for the next star, or the next world once all 3 stars are in.
+ */
+export function nextGoal(stars: number, theme: FlightWorld): { key: string; p: Record<string, number | string> } {
+  if (stars < 2) return { key: 'flightui.goal.stars', p: { n: 6, s: 2 } };
+  if (stars < 3) return { key: 'flightui.goal.stars', p: { n: GATES_PER_RUN, s: 3 } };
+  const i = FLIGHT_THEMES.indexOf(theme);
+  return { key: 'flightui.goal.world', p: { world: FLIGHT_THEMES[(i + 1) % FLIGHT_THEMES.length] } };
+}
+
+/** Whether a finished run beats the world's best before it (stars or best streak); never on a first flight there. */
+export function isNewBest(before: FlightWorldSummary | null, stars: number, bestCombo: number): boolean {
+  if (!before || before.runs === 0) return false;
+  return stars > before.stars || bestCombo > before.bestCombo;
 }
 
 export type FlightPhase = 'intro' | 'fly' | 'look' | 'finish' | 'results';
@@ -90,12 +113,14 @@ export interface RunState {
   helped: number;
   /** first-try streak (sparkle trail + combo chip only; never changes the pace) */
   combo: number;
+  /** longest first-try streak of this run (the results card and the world's best streak) */
+  bestCombo: number;
   /** choice ids already looked at in the "Let's look" sheet */
   tried: string[];
 }
 
 export function runStart(seed: number, phase: FlightPhase = 'intro'): RunState {
-  return { phase, seed, index: 0, lane: 1, firstTry: 0, helped: 0, combo: 0, tried: [] };
+  return { phase, seed, index: 0, lane: 1, firstTry: 0, helped: 0, combo: 0, bestCombo: 0, tried: [] };
 }
 
 const advance = (s: RunState): RunState => (s.index + 1 >= GATES_PER_RUN
@@ -110,7 +135,7 @@ export function flyThrough(s: RunState, q: FlightQuestion, lane: number): { stat
   if (s.phase !== 'fly') return { state: s, paid: null };
   const l = clampLane(lane);
   const choice = q.choices[l];
-  if (choice.correct) return { state: advance({ ...s, lane: l, firstTry: s.firstTry + 1, combo: s.combo + 1 }), paid: 'first' };
+  if (choice.correct) return { state: advance({ ...s, lane: l, firstTry: s.firstTry + 1, combo: s.combo + 1, bestCombo: Math.max(s.bestCombo ?? 0, s.combo + 1) }), paid: 'first' };
   return { state: { ...s, lane: l, phase: 'look', combo: 0, tried: [choice.id] }, paid: null };
 }
 
@@ -125,7 +150,7 @@ export function lookPick(s: RunState, q: FlightQuestion, i: number): { state: Ru
 const newSeed = () => Math.floor(Math.random() * 1_000_000_000);
 
 /** Skills whose gates are read by looking (clocks, groups, shapes): their names in words would give the answer away. */
-const LOOK_SKILLS: readonly FlightSkill[] = ['compare', 'clock', 'shape2d', 'shape3d'];
+const LOOK_SKILLS: readonly FlightSkill[] = ['compare', 'clock', 'shape2d', 'shape3d', 'odd'];
 
 /**
  * Whether Buzzy's lane may be said in words (the chip under the steering row, and spoken while
@@ -133,6 +158,8 @@ const LOOK_SKILLS: readonly FlightSkill[] = ['compare', 'clock', 'shape2d', 'sha
  * emoji), never for clocks, groups or shapes, where the words would do the looking for the child.
  */
 export function laneWordsOk(skill: FlightSkill, v: GateVisual): boolean {
+  // gates that are words or sums ("half", "March", "half past 3", "3 + 4") are read aloud for pre-readers
+  if (v.kind === 'word' || v.kind === 'expr') return true;
   if (LOOK_SKILLS.includes(skill)) return false;
   return v.kind === 'number' || v.kind === 'day' || v.kind === 'emoji';
 }
@@ -185,6 +212,11 @@ function Layer({ children, className, label, testId, world }: { children: ReactN
 // =====================================================================================
 
 export function FlightScreen({ world }: { world: string }) {
+  // a new world (from the pause sheet's world picker) starts a fresh run with that world's music and scene
+  return <FlightRun key={world} world={world} />;
+}
+
+function FlightRun({ world }: { world: string }) {
   const profile = useProfile();
   const t = useT();
   const lang = useLang();
@@ -194,8 +226,12 @@ export function FlightScreen({ world }: { world: string }) {
   const runRef = useRef(run);
   runRef.current = run;
   const [paused, setPaused] = useState(false);
+  // the pause sheet's world picker is open
+  const [picking, setPicking] = useState(false);
   const [burst, setBurst] = useState(0);
   const [nectar, setNectar] = useState(0);
+  // honey drops caught on the way (3D only; a tally to enjoy, never nectar and never a pace change)
+  const [honey, setHoney] = useState(0);
   const [cheer, setCheer] = useState<string | null>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   // the 3D scene is actually up (not the Suspense / lost-context flat fallback): 3D-only controls show only then
@@ -212,6 +248,8 @@ export function FlightScreen({ world }: { world: string }) {
   const name = profile ? displayName(profile.nickname) : '';
   const hat = profile ? currentHat(profile) : null;
   const sound = profile?.settings.sound !== false;
+  const soundRef = useRef(sound);
+  soundRef.current = sound;
   const narrationOn = !!profile?.settings.narration;
   const canNarrate = narrationOn && narrationAvailable(lang);
   const full = profile ? !canEarnFlightNectar(profile, today) : false;
@@ -244,7 +282,13 @@ export function FlightScreen({ world }: { world: string }) {
   }, [active]);
   useEffect(() => installTapJuice(root), [root]);
   // back (gesture, Escape) opens the pause sheet during a run, and closes it again
-  useEffect(() => (active ? pushOverlay(() => setPaused((p) => !p)) : undefined), [active]);
+  // (with the world picker open, back returns to the pause sheet first)
+  const pickingRef = useRef(false);
+  pickingRef.current = picking;
+  useEffect(() => (active ? pushOverlay(() => {
+    if (pickingRef.current) setPicking(false);
+    else setPaused((p) => !p);
+  }) : undefined), [active]);
   useEffect(() => {
     if (!cheer) return;
     const id = window.setTimeout(() => setCheer(null), 1500);
@@ -310,6 +354,10 @@ export function FlightScreen({ world }: { world: string }) {
   const passRef = useRef(pass);
   passRef.current = pass;
   const onGate = useCallback((lane: number) => passRef.current(lane), []);
+  const onHoney = useCallback(() => {
+    setHoney((n) => n + 1);
+    if (soundRef.current) sfx.nectar();
+  }, []);
   const onArrive = useCallback(() => {
     if (runRef.current.phase === 'finish') setRun((s) => (s.phase === 'finish' ? { ...s, phase: 'results' } : s));
   }, []);
@@ -351,26 +399,51 @@ export function FlightScreen({ world }: { world: string }) {
     return () => window.clearTimeout(id);
   }, [phase, paused, three, onArrive]);
   const recorded = useRef<number | null>(null);
+  // the world's best before this run was recorded (for the results card's "New best!")
+  const before = useRef<FlightWorldSummary | null>(null);
+  /**
+   * Record a fully flown run (idempotent by run id). Called on the results card, and also when the
+   * child restarts, changes world, goes to the garden or stops during the finish glide, so the
+   * flight's stars and best streak are never thrown away.
+   */
+  const recordFinished = () => {
+    const s = runRef.current;
+    if (s.phase !== 'finish' && s.phase !== 'results') return;
+    const runId = `${theme}:${s.seed}`;
+    store.updateProfile((p) => {
+      if (p.flight?.lastRunId === runId) return p;
+      before.current = flightWorldSummary(p, theme);
+      return recordRun(p, { world: theme, date: today, gates: GATES_PER_RUN, firstTry: s.firstTry, helped: s.helped, bestCombo: s.bestCombo }, runId);
+    });
+  };
   useEffect(() => {
     if (phase !== 'results' || recorded.current === run.seed) return;
     recorded.current = run.seed;
-    const s = runRef.current;
-    store.updateProfile((p) => recordRun(p, { world: theme, date: today, gates: GATES_PER_RUN, firstTry: s.firstTry, helped: s.helped }, `${theme}:${s.seed}`));
+    recordFinished();
     if (sound) sfx.fanfare();
     haptic('celebrate');
     say(t(`flight.finish.${theme}`, { name: name || t('ui.friend') }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, run.seed]);
 
-  // ---- keyboard: ← → steer, Enter flies through now ----
+  // ---- keyboard: ← → (or A / D) steer, Enter flies through now, P pauses (Escape: back, above) ----
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (paused || runRef.current.phase !== 'fly' || e.defaultPrevented) return;
-      if (e.key === 'ArrowLeft') { e.preventDefault(); setLane(steer(runRef.current.lane, -1)); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); setLane(steer(runRef.current.lane, 1)); }
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+      const tag = (e.target as HTMLElement | null)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      const ph = runRef.current.phase;
+      if ((e.key === 'p' || e.key === 'P') && (ph === 'fly' || ph === 'look' || ph === 'finish')) {
+        e.preventDefault();
+        if (pickingRef.current) setPicking(false);
+        setPaused((v) => !v);
+        return;
+      }
+      if (paused || ph !== 'fly') return;
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { e.preventDefault(); setLane(steer(runRef.current.lane, -1)); }
+      else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { e.preventDefault(); setLane(steer(runRef.current.lane, 1)); }
       else if (e.key === 'Enter') {
-        const tag = (e.target as HTMLElement | null)?.tagName;
-        if (tag === 'BUTTON' || tag === 'INPUT') return;
+        if (tag === 'BUTTON') return;
         e.preventDefault();
         passRef.current(runRef.current.lane);
       }
@@ -418,14 +491,43 @@ export function FlightScreen({ world }: { world: string }) {
     stopSpeaking();
     spoken.current = null;
     setNectar(0);
+    setHoney(0);
     setHeld(false);
     setRun(runStart(newSeed(), 'fly'));
   };
   const leave = () => {
     stopSpeaking();
+    recordFinished();
     setPaused(false);
     store.setRoute(backRouteFor(world));
   };
+  // ---- pause sheet ----
+  const resume = () => { setPicking(false); setPaused(false); };
+  /** Restart run: a fresh seed from gate 1 (new gates, so nothing already paid is paid again). */
+  const restart = () => {
+    recordFinished();
+    setPicking(false);
+    setPaused(false);
+    again();
+  };
+  const goWorld = (w: FlightWorld) => {
+    stopSpeaking();
+    if (w === theme) { resume(); return; }
+    recordFinished();
+    setPicking(false);
+    setPaused(false);
+    // keep the route style of this run: from an adventure world (w1…w7) stay with world ids; from the
+    // garden map (a theme name) stay with theme names, so Stop / back still lead to the garden map
+    store.setRoute({ name: 'flight', world: world in WORLD_BY_ID ? worldIdForTheme(w) : w });
+  };
+  const toGarden = () => {
+    stopSpeaking();
+    recordFinished();
+    setPicking(false);
+    setPaused(false);
+    store.setRoute({ name: 'restore' });
+  };
+  const toggleSound = () => store.updateProfile((p) => ({ ...p, settings: { ...p.settings, sound: !(p.settings.sound !== false) } }));
 
   if (!profile) return <div className="screen center"><p>{t('ui.loading')}</p></div>;
 
@@ -433,6 +535,13 @@ export function FlightScreen({ world }: { world: string }) {
   const style = { ...worldVars(theme), ...(art ? { '--world-art': `url(${art})` } : {}) } as CSSProperties;
   const gateNo = Math.min(run.index + 1, GATES_PER_RUN);
   const choiceText = (v: GateVisual) => t(visualLabel(v));
+  // results card: this flight's stars, a kind "New best!" and one next goal (never losing language)
+  const runStars = flightStars(run.firstTry, true);
+  const newBest = phase === 'results' && isNewBest(before.current, runStars, run.bestCombo);
+  const goal = nextGoal(runStars, theme);
+  const goalText = goal.key === 'flightui.goal.world'
+    ? t(goal.key, { world: t(WORLD_BY_ID[worldIdForTheme(goal.p.world as FlightWorld)].nameKey) })
+    : t(goal.key, goal.p);
   const flat = (
     <Flight2D
       q={phase === 'intro' || phase === 'finish' || phase === 'results' ? null : q}
@@ -453,6 +562,7 @@ export function FlightScreen({ world }: { world: string }) {
         <span className="progress-group">
           <span className="f-gates" aria-label={t('flight.hud.gate', { n: gateNo, total: GATES_PER_RUN })} data-testid="flight-gate-count">🌼 {gateNo}/{GATES_PER_RUN}</span>
           <ComboChip n={run.combo} />
+          {honey > 0 && <span className="f-honey" aria-label={t('flightui.honey', { n: honey })} data-testid="flight-honey">💛 {honey}</span>}
         </span>
         <span ref={nectarRef} className="nectar f-nectar" aria-label={full && nectar === 0 ? t('flight.hud.full') : t('flight.hud.nectar', { n: nectar })} data-testid="flight-nectar">🍯 {nectar}</span>
         <button type="button" className="icon-btn hear-big" onClick={hear} disabled={!canNarrate || !q} aria-label={t('flight.hear')} title={canNarrate ? t('flight.hear') : t('ui.noVoice')} data-testid="flight-hear">🔊</button>
@@ -494,6 +604,7 @@ export function FlightScreen({ world }: { world: string }) {
                 onArrive={onArrive}
                 onLive={setLive3d}
                 onHold={setHeld}
+                onHoney={onHoney}
               />
             </With3D>
             {three && q && phase === 'fly' && (
@@ -590,23 +701,61 @@ export function FlightScreen({ world }: { world: string }) {
           )}
           {run.firstTry > 0 && <p className="small">{t('flight.results.firstTry', { n: run.firstTry })}</p>}
           {run.helped > 0 && <p className="small">{t('flight.results.helped', { n: run.helped })}</p>}
+          <p className="fr-stars" role="img" aria-label={t('flightui.res.stars', { n: runStars })} data-testid="flight-stars" data-n={runStars}>
+            {Array.from({ length: runStars }, (_, i) => <span key={i} aria-hidden>★</span>)}
+            <span className="fr-stars-title">{t(`flightui.res.starTitle.${runStars}`)}</span>
+          </p>
+          {newBest && <p className="fr-newbest" data-testid="flight-new-best">🏆 {t('flightui.res.newBest')}</p>}
+          {run.bestCombo > 0 && <p className="fr-streak" data-testid="flight-best-streak" data-n={run.bestCombo}>{t('flightui.bestStreak', { n: run.bestCombo })}</p>}
+          {honey > 0 && <p className="small fr-honey" data-testid="flight-honey-total" data-n={honey}>{t('flightui.res.honey', { n: honey })}</p>}
           {nectar > 0 && <p className="nectar fr-nectar" data-testid="flight-earned">🍯 {t('flight.results.nectar', { n: nectar })}</p>}
           {full && <p className="small">{t('flight.results.full')}</p>}
+          <p className="small fr-goal" data-testid="flight-next-goal">🎯 {goalText}</p>
           <div className="stack">
             <button type="button" className="btn primary big" onClick={again} data-testid="flight-again">{t('flight.flyAgain')} 🐝</button>
+            <button type="button" className="btn secondary" onClick={toGarden} data-testid="flight-results-garden">🌷 {t('flightui.myGarden')}</button>
             <button type="button" className="btn secondary" onClick={leave} data-testid="flight-back">{t('flight.backWorld')}</button>
           </div>
           </div>
         </Layer>
       )}
 
-      {paused && (
-        <Modal title={t('flight.pause.title')} onClose={() => setPaused(false)}>
+      {paused && !picking && (
+        <Modal title={t('flight.pause.title')} onClose={resume}>
           <p>{t('flight.pause.lead')}</p>
-          <div className="stack">
-            <button type="button" className="btn primary big" onClick={() => setPaused(false)} data-testid="resume">{t('flight.keepFlying')}</button>
+          <div className="stack f-pause">
+            <button type="button" className="btn primary big" onClick={resume} data-testid="resume">{t('flight.keepFlying')}</button>
+            <button type="button" className="btn secondary" onClick={restart} data-testid="flight-restart">🔄 {t('flightui.restart')}</button>
+            <button type="button" className="btn secondary" onClick={() => setPicking(true)} data-testid="flight-change-world">🗺️ {t('flightui.changeWorld')}</button>
+            <button type="button" className="btn secondary" onClick={toGarden} data-testid="flight-garden">🌷 {t('flightui.myGarden')}</button>
+            <div className="f-audio">
+              <button type="button" className="btn secondary" onClick={toggleSound} aria-pressed={sound} data-testid="flight-sound">
+                {sound ? '🔊' : '🔈'} {t(sound ? 'ui.soundOn' : 'ui.soundOff')}
+              </button>
+              <MusicToggle />
+            </div>
             <button type="button" className="btn secondary" onClick={leave} data-testid="stop">{t('flight.stop')}</button>
           </div>
+        </Modal>
+      )}
+
+      {paused && picking && (
+        <Modal title={t('flightui.pickWorld')} onClose={() => setPicking(false)}>
+          <div className="f-worlds" role="list">
+            {FLIGHT_THEMES.map((w) => {
+              const id = worldIdForTheme(w);
+              const here = w === theme;
+              return (
+                <button key={w} type="button" role="listitem" className={`f-world ${here ? 'here' : ''}`} style={worldVars(w) as CSSProperties}
+                  onClick={() => goWorld(w)} aria-current={here || undefined} data-testid={`flight-world-${w}`}>
+                  <FriendFace theme={w} size={44} />
+                  <span className="f-world-name">{t(WORLD_BY_ID[id].nameKey)}</span>
+                  {here && <span className="small f-world-here">{t('flightui.here')}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <button type="button" className="btn small secondary" onClick={() => setPicking(false)} data-testid="flight-world-back">{t('flightui.backToPause')}</button>
         </Modal>
       )}
     </div>

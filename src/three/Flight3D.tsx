@@ -5,7 +5,7 @@ import { spriteUrl } from '../assets/manifest';
 import type { FlightQuestion, FlightWorld, GateVisual } from '../flight/types';
 import type { Lang } from '../i18n/i18n';
 import { billboard, cloud, disposeScene, emojiSprite, hive, island, lights, makeRenderer, skyDome, tree } from './kit';
-import { gateCanvas, visualAspect, type DrawOpts } from './gateArt';
+import { gateCanvas, isSign, visualAspect, type DrawOpts } from './gateArt';
 
 /**
  * Bee Flight in 3D: Buzzy (the painted bee billboard, wearing the current hat) flies down a
@@ -61,8 +61,23 @@ export function rowSpeed(dist: number | null, touched: boolean): number {
  * bigger. Day names sit on a 2:1 sign, 1.2 tall × 2.4 wide, on top of the arch, still clear of the next lane.
  */
 export function badgeScale(v: GateVisual): number {
-  if (v.kind === 'day') return 1.2;
+  if (isSign(v)) return 1.2;
   return v.kind === 'group' || v.kind === 'clock' ? 2.5 : 1.9;
+}
+
+/** Honey drops per gate row (the prototype's honey trail) and where they sit before the row. */
+export const HONEY_DROPS = 4;
+export const HONEY_FROM = 12;
+export const HONEY_STEP = 2.2;
+
+/**
+ * The lane of a row's honey trail: picked from the question id, so it is the same on every
+ * redraw and has nothing to do with which gate is right (the trail is never a hint).
+ */
+export function honeyLane(id: string): number {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return h % 3;
 }
 
 /** The lane whose centre is nearest to x (the gate the bee actually flies through). */
@@ -97,9 +112,12 @@ export interface Flight3DProps {
   onLive?: (live: boolean) => void;
   /** Buzzy is hovering at a row, waiting for the child to choose (true), or flying on (false) */
   onHold?: (held: boolean) => void;
+  /** Buzzy flew through a honey drop (optional collecting; it never changes the pace) */
+  onHoney?: () => void;
 }
 
-interface Row { id: string; group: THREE.Group; cleared: boolean; badges: { tex: THREE.CanvasTexture; canvas: HTMLCanvasElement; draw: () => void }[] }
+interface Drop { mesh: THREE.Mesh; lane: number; done: boolean }
+interface Row { id: string; group: THREE.Group; cleared: boolean; drops: Drop[]; badges: { tex: THREE.CanvasTexture; canvas: HTMLCanvasElement; draw: () => void }[] }
 interface Particle { s: THREE.Sprite; v: THREE.Vector3; life: number; max: number }
 interface Api {
   setQuestion: (q: FlightQuestion | null) => void;
@@ -188,8 +206,8 @@ export default function Flight3D(props: Flight3DProps) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const api = useRef<Api | null>(null);
-  const cb = useRef({ onGate: props.onGate, onArrive: props.onArrive, onLive: props.onLive, onHold: props.onHold });
-  cb.current = { onGate: props.onGate, onArrive: props.onArrive, onLive: props.onLive, onHold: props.onHold };
+  const cb = useRef({ onGate: props.onGate, onArrive: props.onArrive, onLive: props.onLive, onHold: props.onHold, onHoney: props.onHoney });
+  cb.current = { onGate: props.onGate, onArrive: props.onArrive, onLive: props.onLive, onHold: props.onHold, onHoney: props.onHoney };
   const langRef = useRef(lang);
   langRef.current = lang;
   // a lost WebGL context is thrown during render so With3D's boundary swaps in the 2D flight
@@ -315,6 +333,9 @@ export default function Flight3D(props: Flight3DProps) {
     const postMat = flat(pal.accent);
     const archMat = flat(0xf7bf35);
     let rows: Row[] = [];
+    // honey drops: a short line in one lane, met well before the row (outside the slow reading zone)
+    const honeyGeo = new THREE.SphereGeometry(0.28, 12, 10);
+    const honeyMat = new THREE.MeshLambertMaterial({ color: 0xffb703, emissive: 0x7a4a00 });
 
     const buildRow = (q: FlightQuestion): Row => {
       const group = new THREE.Group();
@@ -353,13 +374,22 @@ export default function Flight3D(props: Flight3DProps) {
         badge.scale.set(size * visualAspect(choice.visual), size, 1);
         // day signs sit just above the arch top (y ≈ 3.9: wider than the posts, clear of them); round badges
         // grow upwards from the same centre line inside the arch
-        badge.position.set(0, choice.visual.kind === 'day' ? 4.0 + size / 2 : 2.1 + (size - 1.9) / 2, 0);
+        badge.position.set(0, isSign(choice.visual) ? 4.0 + size / 2 : 2.1 + (size - 1.9) / 2, 0);
         gate.add(badge);
         group.add(gate);
       });
+      const lane = honeyLane(q.id);
+      const drops: Drop[] = [];
+      for (let i = 0; i < HONEY_DROPS; i++) {
+        const mesh = new THREE.Mesh(honeyGeo, honeyMat);
+        mesh.scale.set(1, 1.25, 1);
+        mesh.position.set(LANE_X[lane], 0.75, HONEY_FROM + i * HONEY_STEP);
+        group.add(mesh);
+        drops.push({ mesh, lane, done: false });
+      }
       group.position.z = -GATE_GAP;
       scene.add(group);
-      return { id: q.id, group, cleared: false, badges };
+      return { id: q.id, group, cleared: false, drops, badges };
     };
     const dropRow = (r: Row) => {
       scene.remove(r.group);
@@ -526,6 +556,28 @@ export default function Flight3D(props: Flight3DProps) {
           });
           pathTex.offset.y = (pathTex.offset.y + dz / PATH_TILE) % 1;
         }
+        // honey drops: the ones in Buzzy's lane are collected; once the trail is behind, the row
+        // waits for a fresh choice again (steering for honey is never taken as the answer)
+        for (const r of rows) {
+          if (r.cleared) continue;
+          let fresh = false;
+          for (const d of r.drops) {
+            d.mesh.rotation.y = time * 3;
+            d.mesh.position.y = 0.75 + Math.sin(time * 4 + d.mesh.position.z) * 0.1;
+            if (d.done || r.group.position.z + d.mesh.position.z < 0) continue;
+            d.done = true;
+            fresh = true;
+            if (laneAt(bee.position.x) === d.lane) {
+              d.mesh.visible = false;
+              for (let k = 0; k < 5; k++) {
+                const a = (k / 5) * Math.PI * 2;
+                spawnSparkle(bee.position.clone().add(new THREE.Vector3(0, 0.6, 0)), new THREE.Vector3(Math.cos(a) * 1.4, 1 + Math.sin(a), 0.8), 0.5, 0.26);
+              }
+              cb.current.onHoney?.();
+            }
+          }
+          if (fresh && r.drops.every((d) => d.done)) touched = false;
+        }
         // reaching a row: the gate the bee is in is the child's choice
         for (const r of rows) {
           if (!r.cleared && r.group.position.z >= 0) {
@@ -638,7 +690,7 @@ export default function Flight3D(props: Flight3DProps) {
       rows.forEach(dropRow);
       particles.forEach((p) => p.s.material.dispose());
       sparkleMap.dispose();
-      [postGeo, archGeo, knobGeo, postMat, archMat].forEach((x) => x.dispose());
+      [postGeo, archGeo, knobGeo, postMat, archMat, honeyGeo, honeyMat].forEach((x) => x.dispose());
       (backdrop?.material as THREE.MeshBasicMaterial | undefined)?.map?.dispose();
       disposeScene(scene);
       renderer.dispose();

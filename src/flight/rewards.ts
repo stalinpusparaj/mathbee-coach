@@ -68,12 +68,18 @@ export function recordRun(profile: Profile, result: FlightRunResult, runId?: str
   const helped = int(result.helped, gates - firstTry);
   const byWorld = { ...emptyFlightStats().byWorld, ...prev.byWorld };
   byWorld[result.world] = (byWorld[result.world] ?? 0) + 1;
+  // a streak is a run of first-try gates, so it can never be longer than the first tries
+  const combo = int(result.bestCombo, firstTry);
+  const was = prev.best?.[result.world];
+  const best = { ...prev.best, [result.world]: { combo: Math.max(was?.combo ?? 0, combo), firstTry: Math.max(was?.firstTry ?? 0, firstTry) } };
   const flight: FlightStats = {
     runs: prev.runs + 1,
     gates: prev.gates + gates,
     firstTry: prev.firstTry + firstTry,
     helped: (prev.helped ?? 0) + helped,
     byWorld,
+    best,
+    lastWorld: result.world,
     ...(runId !== undefined ? { lastRunId: runId.slice(0, 80) } : {}),
   };
   return { ...profile, flight };
@@ -97,5 +103,42 @@ export function cleanFlightStats(raw: unknown): FlightStats | undefined {
     for (const w of WORLDS) out.byWorld[w] = int((f.byWorld as Record<string, unknown>)[w], MAX);
   }
   if (typeof f.lastRunId === 'string' && f.lastRunId.length <= 80) out.lastRunId = f.lastRunId;
+  if (f.best && typeof f.best === 'object' && !Array.isArray(f.best)) {
+    const best: NonNullable<FlightStats['best']> = {};
+    for (const w of WORLDS) {
+      const b = (f.best as Record<string, unknown>)[w] as { combo?: unknown; firstTry?: unknown } | null | undefined;
+      if (!b || typeof b !== 'object' || Array.isArray(b)) continue;
+      const ft = int(b.firstTry, GATES_PER_RUN);
+      best[w] = { combo: int(b.combo, ft), firstTry: ft };
+    }
+    if (Object.keys(best).length) out.best = best;
+  }
+  if (typeof f.lastWorld === 'string' && (WORLDS as string[]).includes(f.lastWorld)) out.lastWorld = f.lastWorld;
   return out;
+}
+
+export interface FlightWorldSummary {
+  /** 0 = never finished; 1 = finished; 2 = 6+ gates first try in one run; 3 = all 8 */
+  stars: 0 | 1 | 2 | 3;
+  /** longest first-try streak in any finished run of this world */
+  bestCombo: number;
+  /** finished runs in this world */
+  runs: number;
+}
+
+/** Stars for a world from its best first-try count in one finished run. */
+export function flightStars(bestFirstTry: number, finished: boolean): 0 | 1 | 2 | 3 {
+  if (!finished) return 0;
+  if (bestFirstTry >= GATES_PER_RUN) return 3;
+  if (bestFirstTry >= 6) return 2;
+  return 1;
+}
+
+/** One flight world at a glance (the garden map card, the parent dashboard). */
+export function flightWorldSummary(p: Profile, world: FlightWorld): FlightWorldSummary {
+  const f = p.flight;
+  if (!f || !WORLDS.includes(world)) return { stars: 0, bestCombo: 0, runs: 0 };
+  const runs = f.byWorld?.[world] ?? 0;
+  const best = f.best?.[world];
+  return { stars: flightStars(best?.firstTry ?? 0, runs > 0 || !!best), bestCombo: best?.combo ?? 0, runs };
 }
