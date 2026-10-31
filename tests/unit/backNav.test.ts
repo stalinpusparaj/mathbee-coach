@@ -69,6 +69,7 @@ const ALL: { [K in Route['name']]: Extract<Route, { name: K }> } = {
   'adventure-world': { name: 'adventure-world', world: 'w1' },
   'level-results': { name: 'level-results', levelId: 'w1-01', record, newNectar: 0, prevStars: 0 },
   'session-end': { name: 'session-end' },
+  flight: { name: 'flight', world: 'w1' },
 };
 
 describe('parentOf', () => {
@@ -76,6 +77,13 @@ describe('parentOf', () => {
     const { nav } = await load();
     const noParent = Object.values(ALL).filter((r) => nav.parentOf(r) === null).map((r) => r.name).sort();
     expect(noParent).toEqual(['map', 'mock', 'session', 'welcome']);
+  });
+
+  it('Bee Flight goes back to its world map, or the garden map for a theme name', async () => {
+    const { nav } = await load();
+    expect(nav.parentOf({ name: 'flight', world: 'w3' })).toEqual({ name: 'adventure-world', world: 'w3' });
+    expect(nav.parentOf({ name: 'flight', world: 'meadow' })).toEqual({ name: 'map' });
+    expect(nav.parentOf({ name: 'flight', world: 'nowhere' })).toEqual({ name: 'map' });
   });
 
   it('every parent chain ends at a root without loops', async () => {

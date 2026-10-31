@@ -28,7 +28,9 @@ export type Route =
   | { name: 'adventure' }
   | { name: 'adventure-world'; world: string }
   | { name: 'level-results'; levelId: string; record: SessionRecord; newNectar: number; prevStars: number }
-  | { name: 'session-end' };
+  | { name: 'session-end' }
+  // ---- Bee Flight mini-game ----
+  | { name: 'flight'; world: string };
 
 /** Grown-up areas: reaching them always goes through the parent gate (App.tsx route guard). */
 export const GATED_ROUTES: Route['name'][] = ['parent', 'setup', 'settings', 'tests', 'mock', 'mock-results', 'print'];

@@ -268,6 +268,10 @@ export function WorldMapScreen({ world }: { world: string }) {
           {listView ? t('advui.mapView') : t('advui.listView')}
         </button>
       </header>
+      <button type="button" className="btn primary flight-entry" onClick={() => store.setRoute({ name: 'flight', world: def.id })} data-testid={`flight-${def.id}`}>
+        <span className="fe-title">🐝 {t('flight.title')}</span>
+        <span className="fe-hint">{t('flightui.enterHint')}</span>
+      </button>
       {status.knowsPath && <p className="adv-note knows">🐝 {t('advui.knowsPath')}</p>}
       {hasSide && <p className="adv-note small">{t('advui.extraNote')}</p>}
 

@@ -148,6 +148,20 @@ export interface AdventureProgress {
   lastLevelId: string | null;
 }
 
+// ---------- bee flight ----------
+/** Bee Flight totals (play, not assessment: flights never write Attempts). */
+export interface FlightStats {
+  runs: number;
+  gates: number;
+  firstTry: number;
+  /** gates solved after "Let's look with Buzzy" */
+  helped: number;
+  /** finished runs per world */
+  byWorld: Record<JourneyTheme, number>;
+  /** last run recorded (makes recording idempotent) */
+  lastRunId?: string;
+}
+
 export interface MockConfig {
   kind: 'generic' | 'official';
   questionCount: number;
@@ -238,6 +252,8 @@ export interface Profile {
   screened: CategoryId[];
   /** adventure map progress (optional: older saves are filled in on load) */
   adventure?: AdventureProgress;
+  /** Bee Flight totals (optional: absent until the first finished flight) */
+  flight?: FlightStats;
   activeSession: ActiveSession | null;
   activeMock: MockState | null;
   mockHistory: MockResult[];

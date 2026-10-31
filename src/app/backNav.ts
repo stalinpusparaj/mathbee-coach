@@ -1,6 +1,6 @@
 import { store, type Route } from './store';
 import { inShell, keepAwake, onShell, send } from './shell';
-import { LEVEL_BY_ID } from '../adventure/levels';
+import { LEVEL_BY_ID, WORLD_BY_ID } from '../adventure/levels';
 
 /**
  * Back navigation. Android's back gesture, Escape and on-screen back buttons all go through
@@ -41,6 +41,8 @@ export function parentOf(route: Route): Route | null {
     case 'tests': case 'setup': case 'settings': return { name: 'parent' };
     case 'mock': return null; // MockScreen registers an overlay: back opens its submit / keep-working sheet
     case 'mock-results': case 'print': return { name: 'tests' };
+    // during a run the flight screen registers its pause sheet as an overlay, so back opens it first
+    case 'flight': return route.world in WORLD_BY_ID ? { name: 'adventure-world', world: route.world } : { name: 'map' };
   }
 }
 

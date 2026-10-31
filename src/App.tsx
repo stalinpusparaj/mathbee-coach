@@ -18,6 +18,7 @@ import { ParentGate } from './components/ParentGate';
 import { AdventureWorldsScreen, WorldMapScreen, LevelResultsScreen } from './screens/AdventureScreens';
 import { IntroStory } from './screens/IntroStory';
 import { SessionEndScreen } from './components/SessionEnd';
+import { FlightScreen } from './screens/FlightScreen';
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -107,7 +108,7 @@ export function App() {
   }, [musicOn]);
   // quieter during questions, silent in mock tests, lower while narration speaks
   useEffect(() => {
-    music.setScene(route.name === 'mock' ? 'silent' : route.name === 'session' ? 'play' : 'home');
+    music.setScene(route.name === 'mock' ? 'silent' : route.name === 'session' || route.name === 'flight' ? 'play' : 'home');
   }, [route.name]);
   useEffect(() => onSpeakingChange((on) => music.duck(on)), []);
   useEffect(() => {
@@ -146,6 +147,7 @@ export function App() {
     case 'adventure-world': screen = <WorldMapScreen world={route.world} />; break;
     case 'level-results': screen = <LevelResultsScreen levelId={route.levelId} record={route.record} newNectar={route.newNectar} prevStars={route.prevStars} />; break;
     case 'session-end': screen = <SessionEndScreen />; break;
+    case 'flight': screen = <FlightScreen world={route.world} />; break;
   }
   // grown-up areas always go through the parent gate first
   if (GATED_ROUTES.includes(route.name) && !gateOpen) {

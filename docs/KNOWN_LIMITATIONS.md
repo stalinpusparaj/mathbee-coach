@@ -51,3 +51,10 @@
 - The intro story adds about 25 seconds of narration before the first question (skippable after 2 s), so "first correct answer within 60 seconds" is tight for a new player.
 - The bundled fonts add about 312 KB, including `.woff` fallbacks a modern WebView never downloads.
 - The privacy page inside the app is shown in a sandboxed iframe; whether it renders through the Android asset loader at `/web/privacy.html` was not checked on a device.
+
+## Bee Flight
+- The Tamil strings for Bee Flight (`src/i18n/packs/flight.ts`, `flight-ui.ts`) are a developer draft and need review by a native Tamil-speaking teacher.
+- Flight nectar counts toward the daily nectar total but not toward daily quests; a finished flight does not complete the "finish a journey" quest.
+- In 3D the pace is deliberately slow (about 12 s per gate); the e2e test finishes gates through the `?e2e` hook (`window.__mathbeeFlight.pass`) instead of waiting. 3D flying was checked in desktop Chromium and the Android emulator only, not on physical phones.
+- Without a gate id `awardGate` is not idempotent; the screen always passes the question id.
+- A brief washed-out frame was once seen in a browser screenshot during the correct-gate celebration; it was not reproduced and its cause is unconfirmed.

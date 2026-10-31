@@ -24,7 +24,8 @@ export type GateVisual =
   | { kind: 'shape'; shape: ShapeId }
   | { kind: 'clock'; h: number; m: 0 | 30 }
   | { kind: 'day'; day: number } // 0 = Sunday … 6 = Saturday (label from i18n day.N)
-  | { kind: 'group'; e: string; n: number }; // n copies of an emoji, to count
+  | { kind: 'group'; e: string; n: number } // n copies of an emoji, to count
+  | { kind: 'blank' }; // the empty spot in a prompt picture ("? " on a number line or a week strip); never a gate
 
 export interface FlightChoice { id: string; visual: GateVisual; correct: boolean }
 

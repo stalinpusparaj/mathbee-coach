@@ -4,6 +4,7 @@ import { LEVEL_BY_ID, WORLD_BY_ID } from '../adventure/levels';
 import { emptyAdventure } from '../adventure/progress';
 import { isValidDateStr } from '../learning/dates';
 import { getTemplate } from '../engine/registry';
+import { cleanFlightStats } from '../flight/rewards';
 import { SUBSKILL_BY_ID } from '../curriculum/curriculum';
 
 export const SCHEMA_VERSION = 1;
@@ -67,6 +68,8 @@ function fillDefaults(p: Profile): Profile {
       : [],
     beeHat: typeof p.beeHat === 'string' && p.beeHat.length <= 8 ? p.beeHat : null,
     adventure: cleanAdventure(p.adventure),
+    // Bee Flight totals stay optional: absent until the first finished flight
+    flight: cleanFlightStats(p.flight),
   };
 }
 
@@ -161,6 +164,7 @@ export function validateImport(data: unknown): { ok: true; state: AppState } | {
       }
     } else errors.push(`${where}: reviews missing.`);
     if (p.adventure !== undefined && (p.adventure === null || typeof p.adventure !== 'object' || Array.isArray(p.adventure))) errors.push(`${where}: invalid adventure progress.`);
+    if (p.flight !== undefined && (p.flight === null || typeof p.flight !== 'object' || Array.isArray(p.flight))) errors.push(`${where}: invalid flight totals.`);
   });
   if (errors.length) return { ok: false, errors: errors.slice(0, 25) };
   try {

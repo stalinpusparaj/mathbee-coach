@@ -11,7 +11,7 @@ import { Sprite } from '../components/art';
 import { BackButton, BeeSays } from '../components/ui';
 import { ParentEntry } from '../components/ParentGate';
 import { nextLevelId } from '../adventure/progress';
-import { LEVEL_BY_ID } from '../adventure/levels';
+import { LEVEL_BY_ID, WORLD_BY_ID } from '../adventure/levels';
 import { hasSprite, spriteUrl, pickSprite } from '../assets/manifest';
 import { LevelBadge, RewardReveal, CountUp } from './RewardScreens';
 import { displayName } from '../learning/gamification';
@@ -53,6 +53,9 @@ export function GardenMapScreen() {
   // the adventure path is the child's main way forward; practice missions stay one tap away
   const nextLevel = profile.familiarised ? nextLevelId(profile, ev) : null;
   const recommendedCat = unscreened[0];
+  // Bee Flight from the garden flies in the world of the child's adventure position (meadow at first);
+  // a theme name (not a world id) keeps "back" on the garden map
+  const flightWorld = WORLD_BY_ID[LEVEL_BY_ID[nextLevel ?? profile.adventure?.lastLevelId ?? '']?.world]?.theme ?? 'meadow';
   const mapArt = { wide: spriteUrl('bg_map_wide'), tall: spriteUrl('bg_map_tall') };
 
   const map2d = (
@@ -130,6 +133,7 @@ export function GardenMapScreen() {
         <button type="button" className="btn secondary" onClick={() => launch('daily')} data-testid="daily">{t('ui.dailyPractice')}</button>
         <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'review-due' })} data-testid="review">{t('ui.review')} {due > 0 && <span className="count">{due}</span>}</button>
         <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'restore' })} data-testid="restore">{t('ui.restoreGarden')}</button>
+        <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'flight', world: flightWorld })} data-testid="flight-btn">🐝 {t('flight.title')}</button>
       </nav>
 
       {listView ? (

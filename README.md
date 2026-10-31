@@ -140,6 +140,7 @@ How it works: sprites are requested on a flat magenta background, which `tools/p
 | Button practice | Unscored control familiarisation (tap, keypad, what Hint/Check/Hear/Pause do). |
 | Garden map | "Next adventure" as the main action, the adventure worlds, today's practice mission, 14 locations with bloom levels, restored garden items, and a **List view** alternative. |
 | Adventure | 7 world cards (+ bonus), each world's winding map of flower buds with a level intro card, level results with 1–3 blooms, and a friend's party at the end of each world. |
+| Bee Flight | A gentle 3-lane flying mini-game in every adventure world (and from the garden map): 8 answer gates per run, "Let's look with Buzzy" help after a different gate, results with first-try blooms. |
 | Category screen | Explore / Practise / Apply per category with **Learn** (lesson) and **Practise** buttons; extensions marked. |
 | Garden check-up | Gentle starting assessment: 4 topics per session, adaptive follow-ups, max 3 questions per topic. |
 | Lesson | Worked example → guided try → fading help → new independent question → different (plain) format. |
@@ -166,6 +167,28 @@ maths is always clear):
   3D error quietly falls back to 2D. three.js is loaded only when a 3D view is shown and is cached by the
   service worker, so it still works offline.
 - Pure layout maths lives in `src/three/layout3d.ts` (unit-tested); reusable props in `src/three/kit.ts`.
+
+## Bee Flight (mini-game)
+
+A port of the "Fly & Train" prototype into the storybook theme. Open it with **🐝 Bee Flight** under a
+world map's header (testid `flight-<worldId>`) or in the garden map's quick row (`flight-btn`, which flies
+in the world of the child's adventure position, meadow at first).
+
+- **Play:** Buzzy flies down a 3-lane path; the question is in the HUD (narrated, 🔊 to hear again) with a
+  picture when needed. Steer with the big ◀ ▶ buttons, tap a lane, swipe, or ← → / Enter. Flying through a
+  different gate opens "Let's look with Buzzy" (the help and the three choices as big buttons) — never
+  "wrong", no buzzer. 8 gates per run, then the world's friend and the results.
+- **No speed pressure:** a constant gentle pace that slows further near a gate row; streaks add only a
+  sparkle trail and the combo chip. No timers, no lives. Back (gesture/Escape) during a run opens the pause sheet.
+- **Questions** (`src/flight/questions.ts`): seeded per world — meadow counting and next/before, river
+  comparing, orchard addition/make 10/doubles, ice subtraction, trail skip counting and patterns, town
+  shapes (true 3D solids), analogue clocks and days, garden a mix of all. Exactly one correct gate; the
+  answer never appears in the prompt.
+- **Rewards** (`src/flight/rewards.ts`): +1 nectar per gate (first try or with help), at most 16 flight
+  nectar a day, idempotent per gate. Runs are stored in `profile.flight`; flights never write mastery attempts.
+- **Rendering:** `src/three/Flight3D.tsx` (painted world backdrop, gate badges drawn by `src/three/gateArt.ts`);
+  a calm 2D version with three big gate buttons for reduced motion, no WebGL or *Flat 2D* graphics.
+- Tests: `tests/unit/flight-*.test.ts`, `tests/e2e/flight.spec.ts` (uses the `?e2e` hook `window.__mathbeeFlight`).
 
 ## Motivation, gamification and effects
 
