@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Developer draft: a native Tamil speaker reviews these before launch. -->
 <resources>
-    <string name="app_name">MathBee: எண் தோட்டம்</string>
+    <string name="app_name">எண் தோட்டம்</string>
     <string name="retry_title">பஸ்ஸிக்குக் கொஞ்சம் ஓய்வு தேவை</string>
     <string name="retry_body">உங்கள் தோட்டம் பத்திரமாக உள்ளது. மீண்டும் விளையாட பொத்தானைத் தட்டுங்கள்.</string>
     <string name="retry_button">மீண்டும் முயல்க</string>
     <string name="webview_title">Android System WebView-ஐப் புதுப்பிக்கவும்</string>
-    <string name="webview_body">MathBee இயங்க Android System WebView-இன் புதிய பதிப்பு தேவை. பெரியவர் ஒருவர் Play Store-இல் அதைப் புதுப்பித்து, பிறகு மீண்டும் முயல்க என்பதைத் தட்டலாம்.</string>
+    <string name="webview_body">எண் தோட்டம் இயங்க Android System WebView-இன் புதிய பதிப்பு தேவை. பெரியவர் ஒருவர் Play Store-இல் அதைப் புதுப்பித்து, பிறகு மீண்டும் முயல்க என்பதைத் தட்டலாம்.</string>
     <string name="share_title">முன்னேற்றக் கோப்பைப் பகிர்</string>
-    <string name="print_job">MathBee பயிற்சித் தாள்</string>
+    <string name="print_job">எண் தோட்டம் பயிற்சித் தாள்</string>
 </resources>

@@ -68,7 +68,7 @@
 }
 .world-map[style*="--world-art"] .wp { background: transparent; }
 /* the painting already gives depth: drop the flat far/mid shapes on top of it */
-.world-map[style*="--world-art"] .wp-layer.far, .world-map[style*="--world-art"] .wp-layer.mid { display: none; }
+.world-map[style*="--world-art"] .wp-layer { display: none; }
 
 /* ---------- world map ---------- */
 .world-map { background: linear-gradient(180deg, var(--world-sky), var(--world-sky-2) 40%, var(--world-sky-2)); color: var(--world-ink); }

@@ -44,7 +44,7 @@ export function ParentDashboard() {
         <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'setup' })} data-testid="to-setup">{t('p.setup')}</button>
         <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'settings' })} data-testid="to-settings">{t('p.settings')}</button>
         <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'tests' })} data-testid="to-tests">{t('pp.tests')}</button>
-        {canPrint() && <button type="button" className="btn small secondary" onClick={() => void printPage('MathBee report')} data-testid="print-report">{t('pp.print')}</button>}
+        {canPrint() && <button type="button" className="btn small secondary" onClick={() => void printPage('Number Garden report')} data-testid="print-report">{t('pp.print')}</button>}
       </nav>
 
       <section className="card disclosure">

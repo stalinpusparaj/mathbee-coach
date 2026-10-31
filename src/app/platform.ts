@@ -75,7 +75,7 @@ export function canPrint(): boolean {
  * WebView; `html.printing` is set meanwhile so screen-only chrome can hide even if the print
  * adapter ignores `@media print`.
  */
-export async function printPage(jobName = 'MathBee worksheet'): Promise<'printed' | 'cancelled' | 'error' | 'unavailable'> {
+export async function printPage(jobName = 'Number Garden worksheet'): Promise<'printed' | 'cancelled' | 'error' | 'unavailable'> {
   if (inShell()) {
     const root = document.documentElement;
     root.classList.add('printing');

@@ -124,7 +124,7 @@ export const TA_UI: Record<string, string> = {
   'garden.lily_pad': 'அல்லி இலை', 'garden.cattails': 'குளத்து நாணல்', 'garden.chair': 'தோட்ட நாற்காலி', 'garden.watering_can': 'நீர் ஊற்றும் குவளை', 'garden.frog': 'குளத்துத் தவளை', 'garden.lantern': 'விளக்கு',
   'garden.firefly': 'மின்மினி நண்பன்', 'garden.bunting': 'கொடித் தோரணம்', 'garden.wreath': 'பூமாலை', 'garden.gate': 'தோட்ட வாசல்', 'garden.picnic': 'சுற்றுலாக் கூடை', 'garden.bunny': 'தூங்கும் முயல்', 'garden.butterflies': 'வண்ணத்துப்பூச்சிகள்', 'garden.birdhouse': 'பறவைக் கூடு', 'garden.arch': 'பூ வளைவு', 'garden.fountain': 'நீரூற்று',
 
-  'ui.loading': 'ஏற்றுகிறது…', 'ui.tagline': 'என் எண் தோட்டம்', 'ui.play': 'விளையாடு', 'ui.continueAs': '{name} ஆகத் தொடர்', 'ui.friend': 'நண்பா',
+  'ui.loading': 'ஏற்றுகிறது…', 'ui.tagline': 'தேனீ பஸ்ஸியுடன் 1ஆம் வகுப்பு கணக்கு', 'ui.play': 'விளையாடு', 'ui.continueAs': '{name} ஆகத் தொடர்', 'ui.friend': 'நண்பா',
   'ui.soundOn': 'ஒலி உள்ளது', 'ui.soundOff': 'ஒலி இல்லை', 'ui.musicOn': 'இசை உள்ளது', 'ui.musicOff': 'இசை இல்லை', 'ui.grownUps': 'பெரியவர்கள்', 'ui.updateReady': 'புதிய பதிப்பு தயார்.', 'ui.updateNow': 'இப்போது புதுப்பி',
   'ui.back': 'பின்', 'ui.whoIsPlaying': 'யார் விளையாடுகிறார்கள்?', 'ui.newPlayer': 'புதிய விளையாட்டாளர்', 'ui.makePlayer': 'புதிய விளையாட்டாளர்', 'ui.pickAvatar': 'ஒரு நண்பனைத் தேர்ந்தெடு',
   'ui.nickname': 'செல்லப் பெயர்', 'ui.optional': 'விருப்பம்', 'ui.nicknameNote': 'செல்லப் பெயர் போதும் — முழுப் பெயர் வேண்டாம்.', 'ui.language': 'மொழி',
@@ -173,7 +173,7 @@ export const TA_UI: Record<string, string> = {
   'ui.startTest': 'தேர்வு தொடங்கு', 'ui.cancel': 'ரத்து', 'ui.questionOf': 'கேள்வி {n} / {total}', 'ui.minutesLeft': '{n} நிமிடம் மீதம்', 'ui.noTimeLimit': 'நேர வரம்பு இல்லை',
   'ui.previous': 'முந்தையது', 'ui.submitTest': 'தேர்வை முடி', 'ui.submitConfirm': '{total} இல் {n} கேள்விகளுக்கு விடை அளித்தாய். இப்போது முடிக்கவா?', 'ui.yesSubmit': 'ஆம், முடி', 'ui.keepWorking': 'தொடர்ந்து செய்',
   'ui.testResults': 'தேர்வு முடிவுகள்', 'ui.testScore': '{n} இல் {c} சரி ({max} இல் {marks} மதிப்பெண்கள்).', 'ui.explanations': 'விடைகளும் விளக்கங்களும்', 'ui.followUpLessons': 'தொடர் பாடங்கள்', 'ui.learnSkill': 'கற்றுக்கொள்: {skill}',
-  'ui.print': 'அச்சிடு', 'ui.sheetTitle': 'MathBee பயிற்சித்தாள்', 'ui.sheetName': 'பெயர்:', 'ui.sheetDate': 'தேதி:', 'ui.answer': 'விடை', 'ui.answersPage': 'விடைகளும் விளக்கங்களும்',
+  'ui.print': 'அச்சிடு', 'ui.sheetTitle': 'எண் தோட்டம் பயிற்சித்தாள்', 'ui.sheetName': 'பெயர்:', 'ui.sheetDate': 'தேதி:', 'ui.answer': 'விடை', 'ui.answersPage': 'விடைகளும் விளக்கங்களும்',
   // ---- fun ----
   'combo.chip': '🔥 தொடர்ந்து {n}!', 'combo.cheer': 'தொடர்ந்து {n} சரி, {name}! அருமை!', 'combo.cheerPlain': 'தொடர்ந்து {n} சரி! அருமை!',
   'quest.title': 'இன்றைய சவால்கள்', 'quest.allDone': 'எல்லாச் சவால்களும் முடிந்தன! தங்கச் சூரியகாந்தி கிடைத்தது 🌻', 'quest.comeBack': 'நாளை புதிய சவால்கள்!',

@@ -161,7 +161,7 @@ test('parent area: report reflects real attempts; import rejects malformed data;
   await expect(page.getByTestId('parent')).not.toContainText(/readiness:/i);
   await page.getByTestId('to-settings').click();
   await page.getByTestId('import-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"hello": 1}') });
-  await expect(page.getByTestId('import-msg')).toContainText(/not a MathBee Coach export/i);
+  await expect(page.getByTestId('import-msg')).toContainText(/not a Number Garden backup/i);
   await page.getByTestId('reset-all').click();
   await page.getByTestId('reset-cancel').click();
   await page.reload();

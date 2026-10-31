@@ -24,7 +24,7 @@ export function WelcomeScreen() {
     <div className="screen welcome" style={bg ? { backgroundImage: `linear-gradient(rgba(255,248,232,.55), rgba(255,248,232,.9)), url(${bg})` } : undefined}>
       <div className="welcome-card">
         <Sprite id="bee" size={120} className="bee-idle" decorative />
-        <h1 className="logo">MathBee <span>Coach</span></h1>
+        <h1 className="logo">Number <span>Garden</span></h1>
         <p className="tagline">{t('ui.tagline')}</p>
         <div className="stack">
           {profile && (

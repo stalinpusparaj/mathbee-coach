@@ -127,7 +127,7 @@ export function cleanAdventure(raw: unknown): AdventureProgress {
 export function validateImport(data: unknown): { ok: true; state: AppState } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   const d = data as { kind?: string; state?: unknown };
-  if (!d || typeof d !== 'object' || d.kind !== EXPORT_KIND) return { ok: false, errors: ['This is not a MathBee Coach export file.'] };
+  if (!d || typeof d !== 'object' || d.kind !== EXPORT_KIND) return { ok: false, errors: ['This is not a Number Garden backup file.'] };
   const st = d.state as Partial<AppState>;
   if (!st || typeof st !== 'object') return { ok: false, errors: ['Missing state.'] };
   if (typeof st.schemaVersion !== 'number' || st.schemaVersion > SCHEMA_VERSION || st.schemaVersion < 1) errors.push('Unsupported schema version.');

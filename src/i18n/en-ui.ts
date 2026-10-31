@@ -172,7 +172,7 @@ export const EN_UI: Record<string, string> = {
   'next.start': 'Start the garden check-up.',
 
   // child UI
-  'ui.loading': 'Loading…', 'ui.tagline': 'My Number Garden', 'ui.play': 'Play', 'ui.continueAs': 'Continue as {name}', 'ui.friend': 'Friend',
+  'ui.loading': 'Loading…', 'ui.tagline': 'Class 1 maths with Buzzy the bee', 'ui.play': 'Play', 'ui.continueAs': 'Continue as {name}', 'ui.friend': 'Friend',
   'ui.soundOn': 'Sound on', 'ui.soundOff': 'Sound off', 'ui.musicOn': 'Music on', 'ui.musicOff': 'Music off', 'ui.grownUps': 'Grown-ups', 'ui.updateReady': 'A new version is ready.', 'ui.updateNow': 'Update now',
   'ui.back': 'Back', 'ui.whoIsPlaying': 'Who is playing?', 'ui.newPlayer': 'New player', 'ui.makePlayer': 'New player', 'ui.pickAvatar': 'Pick a friend',
   'ui.nickname': 'Nickname', 'ui.optional': 'optional', 'ui.nicknameNote': 'A nickname is enough — please do not use a full name.', 'ui.language': 'Language',
@@ -231,7 +231,7 @@ export const EN_UI: Record<string, string> = {
   'ui.officialNote': 'Scored with the marks a grown-up entered. This is practice, not a prediction of competition results.',
   'ui.genericNote': 'Generic practice test — not the official format, and not a prediction of results.',
   'ui.explanations': 'Answers and explanations', 'ui.followUpLessons': 'Follow-up lessons', 'ui.learnSkill': 'Learn: {skill}',
-  'ui.print': 'Print', 'ui.sheetTitle': 'MathBee practice sheet', 'ui.sheetName': 'Name:', 'ui.sheetDate': 'Date:', 'ui.answer': 'Answer', 'ui.answersPage': 'Answers and explanations',
+  'ui.print': 'Print', 'ui.sheetTitle': 'Number Garden practice sheet', 'ui.sheetName': 'Name:', 'ui.sheetDate': 'Date:', 'ui.answer': 'Answer', 'ui.answersPage': 'Answers and explanations',
 
   // parent dashboard
   'p.title': '{name}: learning report', 'p.setup': 'Competition setup', 'p.settings': 'Settings & data', 'p.start': 'Start',
@@ -269,7 +269,7 @@ export const EN_UI: Record<string, string> = {
   's.export': 'Export data', 's.exportCopy': 'Saving a file is not available here. Copy this text and keep it somewhere safe; you can import it later from a .json file.', 's.copy': 'Copy', 's.import': 'Import data', 's.importOk': 'Imported successfully.', 's.importBad': 'That file could not be read. Nothing was changed.',
   's.resetProfile': 'Delete this profile', 's.resetAll': 'Reset everything', 's.confirmTitle': 'Are you sure?', 's.confirmProfile': 'This deletes this child’s progress on this device. Export first if you want a copy.',
   's.confirmAll': 'This deletes all profiles and progress on this device. Export first if you want a copy.', 's.yesReset': 'Yes, delete',
-  's.about': 'MathBee Coach is an independent practice app inspired by the supplied worksheets. It is not affiliated with any competition or publisher and does not promise results.',
+  's.about': 'Number Garden is an independent Class 1 maths practice app by GEM CREATORS. It is not affiliated with any competition or publisher and does not promise results.',
   // ---- fun: combos, quests, gifts, friends, hats ----
   'combo.chip': '🔥 {n} in a row!', 'combo.cheer': '{n} in a row, {name}! You are on fire!', 'combo.cheerPlain': '{n} in a row! You are on fire!',
   'quest.title': 'Today’s quests', 'quest.allDone': 'All quests done! You won a golden sunflower 🌻', 'quest.comeBack': 'New quests tomorrow!',
