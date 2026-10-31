@@ -62,9 +62,24 @@ export interface DrawOpts {
   accent?: string;
 }
 
-/** Draw a visual into a square of side `size` at the canvas origin. */
+/**
+ * Width ÷ height of a visual's art. Day names are drawn on a wide rectangular sign (2:1) so long
+ * names such as "Wednesday" stay big enough to read; everything else is square.
+ */
+export function visualAspect(v: GateVisual): number {
+  return v.kind === 'day' ? 2 : 1;
+}
+
+/** Draw a visual at the canvas origin: a square of side `size`, or a `size`-tall sign of visualAspect(v) × size. */
 export function drawGateVisual(ctx: CanvasRenderingContext2D, v: GateVisual, size: number, opts: DrawOpts): void {
   const s = size;
+  if (v.kind === 'day') {
+    ctx.save();
+    ctx.clearRect(0, 0, s * visualAspect(v), s);
+    daySign(ctx, v.day, s * visualAspect(v), s, opts);
+    ctx.restore();
+    return;
+  }
   ctx.save();
   ctx.clearRect(0, 0, s, s);
   ctx.lineJoin = 'round';
@@ -79,17 +94,17 @@ export function drawGateVisual(ctx: CanvasRenderingContext2D, v: GateVisual, siz
     case 'emoji': emojiArt(ctx, v.e, inner * 0.62, inner / 2, inner / 2 + inner * 0.03); break;
     case 'shape': shapeArt(ctx, v.shape, inner); break;
     case 'clock': clockArt(ctx, v.h, v.m, inner); break;
-    case 'day': dayArt(ctx, v.day, inner, opts.lang); break;
     case 'group': groupArt(ctx, v.e, opts.badge ? badgeRows(v.n) : groupRows(v.n), inner); break;
     case 'blank': blankArt(ctx, inner); break;
   }
   ctx.restore();
 }
 
-/** A fresh canvas of `px` × `px` with the visual drawn on it. */
+/** A fresh canvas `px` tall (and visualAspect(v) × px wide) with the visual drawn on it. */
 export function gateCanvas(v: GateVisual, opts: DrawOpts, px = 256): HTMLCanvasElement {
   const c = document.createElement('canvas');
-  c.width = c.height = px;
+  c.width = Math.round(px * visualAspect(v));
+  c.height = px;
   const ctx = c.getContext('2d');
   if (ctx) drawGateVisual(ctx, v, px, opts);
   return c;
@@ -400,48 +415,58 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   else ctx.rect(x, y, w, h);
 }
 
-function dayArt(ctx: CanvasRenderingContext2D, day: number, s: number, lang: Lang) {
-  // a little calendar page: rings, a coloured header strip and the day's name
-  const x = s * 0.08;
-  const y = s * 0.16;
-  const w = s * 0.84;
-  const h = s * 0.7;
-  const rr = s * 0.06;
-  ctx.beginPath();
-  roundRect(ctx, x, y, w, h, rr);
-  ink(ctx, s, '#ffffff');
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(x, y, w, h * 0.28);
-  ctx.clip();
-  ctx.beginPath();
-  roundRect(ctx, x, y, w, h, rr);
-  ctx.fillStyle = '#e86a92';
-  ctx.fill();
-  ctx.restore();
-  ctx.beginPath();
-  roundRect(ctx, x, y, w, h, rr);
-  ctx.lineWidth = s * 0.035;
-  ctx.strokeStyle = GATE_INK;
-  ctx.stroke();
-  for (const rx of [0.3, 0.7]) {
+/**
+ * A day name on a rectangular garden sign: a wooden honey frame (when it is a gate badge) or a
+ * plain cream card (in a prompt picture), with the name as large as the sign allows.
+ */
+function daySign(ctx: CanvasRenderingContext2D, day: number, w: number, h: number, opts: DrawOpts) {
+  const pad = h * 0.07;
+  const r = h * 0.16;
+  if (opts.badge) {
+    // soft glow, honey frame, then a cream board with the world's accent as a thin inner line
+    ctx.fillStyle = 'rgba(255, 224, 122, 0.45)';
     ctx.beginPath();
-    ctx.moveTo(s * rx, y - s * 0.06);
-    ctx.lineTo(s * rx, y + s * 0.07);
-    ctx.lineWidth = s * 0.035;
+    roundRect(ctx, 0, 0, w, h, r * 1.2);
+    ctx.fill();
+    const g = ctx.createLinearGradient(0, pad, 0, h - pad);
+    g.addColorStop(0, HONEY_LIGHT);
+    g.addColorStop(0.6, HONEY);
+    g.addColorStop(1, HONEY_DARK);
+    ctx.beginPath();
+    roundRect(ctx, pad, pad, w - pad * 2, h - pad * 2, r);
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.lineWidth = h * 0.05;
+    ctx.strokeStyle = GATE_INK;
+    ctx.stroke();
+    const f = pad + h * 0.08;
+    ctx.beginPath();
+    roundRect(ctx, f, f, w - f * 2, h - f * 2, r * 0.7);
+    ctx.fillStyle = GATE_CREAM;
+    ctx.fill();
+    ctx.lineWidth = h * 0.025;
+    ctx.strokeStyle = opts.accent ?? HONEY_DARK;
+    ctx.stroke();
+  } else {
+    ctx.beginPath();
+    roundRect(ctx, pad, pad, w - pad * 2, h - pad * 2, r);
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+    ctx.lineWidth = h * 0.05;
     ctx.strokeStyle = GATE_INK;
     ctx.stroke();
   }
-  const name = dayName(day, lang);
+  const name = dayName(day, opts.lang);
+  const maxW = w * (opts.badge ? 0.78 : 0.84);
   ctx.fillStyle = GATE_INK;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  let fs = s * 0.26;
+  let fs = h * 0.5;
   ctx.font = `800 ${fs}px ${FONT}`;
-  // shrink long names (Wednesday, Tamil) to fit the page
-  while (fs > s * 0.08 && ctx.measureText(name).width > w * 0.94) {
-    fs -= s * 0.01;
+  // shrink only as much as a long name (Wednesday, Tamil) needs to fit the board
+  while (fs > h * 0.18 && ctx.measureText(name).width > maxW) {
+    fs -= h * 0.01;
     ctx.font = `800 ${fs}px ${FONT}`;
   }
-  ctx.fillText(name, s / 2, y + h * 0.64);
+  ctx.fillText(name, w / 2, h * 0.54);
 }

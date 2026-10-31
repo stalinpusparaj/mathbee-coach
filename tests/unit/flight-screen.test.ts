@@ -5,7 +5,7 @@ import {
   Flight2D, FlightScreen, LANES, SWIPE_PX, backRouteFor, flightTheme, flyThrough, laneFromPoint, laneWordsOk, lookPick, runStart, steer, swipeDir,
 } from '../../src/screens/FlightScreen';
 import { CRUISE_SPEED, HOLD_AT, LANE_X, NEAR_SPEED, SLOW_FROM, badgeScale, flightSpeed, laneAt, rowSpeed } from '../../src/three/Flight3D';
-import { badgeRows, clockAngles, drawGateVisual, groupRows, visualText } from '../../src/three/gateArt';
+import { badgeRows, clockAngles, drawGateVisual, groupRows, visualAspect, visualText } from '../../src/three/gateArt';
 import { correctLane, flightQuestion } from '../../src/flight/questions';
 import { GATES_PER_RUN, type GateVisual } from '../../src/flight/types';
 import { store } from '../../src/app/store';
@@ -219,12 +219,23 @@ describe('no hidden timer: Buzzy waits at a row until the child chooses', () => 
 });
 
 describe('gate badges stay readable on small phones', () => {
-  it('groups, clocks and day cards get a bigger badge; lanes are far enough apart for it', () => {
-    for (const v of [{ kind: 'group', e: '🐢', n: 5 }, { kind: 'clock', h: 3, m: 30 }, { kind: 'day', day: 5 }] as GateVisual[]) {
+  it('groups and clocks get a bigger badge; lanes are far enough apart for it', () => {
+    for (const v of [{ kind: 'group', e: '🐢', n: 5 }, { kind: 'clock', h: 3, m: 30 }] as GateVisual[]) {
       expect(badgeScale(v)).toBeGreaterThan(badgeScale({ kind: 'number', n: 3 }));
       // the drawn disc (90 % of the sprite) never overlaps the next lane's
       expect(badgeScale(v) * 0.9).toBeLessThanOrEqual(LANE_X[1] - LANE_X[0]);
     }
+  });
+
+  it('day names sit on a wide rectangular sign that still clears the next lane', () => {
+    const day: GateVisual = { kind: 'day', day: 3 }; // Wednesday, the longest English name
+    expect(visualAspect(day)).toBe(2);
+    expect(visualAspect({ kind: 'number', n: 3 })).toBe(1);
+    const width = badgeScale(day) * visualAspect(day);
+    // wider than a round badge, so the name gets more room …
+    expect(width).toBeGreaterThan(badgeScale({ kind: 'number', n: 3 }));
+    // … but never wider than the gap between lane centres
+    expect(width).toBeLessThan(LANE_X[1] - LANE_X[0]);
   });
 
   it('gate groups are at most three across', () => {

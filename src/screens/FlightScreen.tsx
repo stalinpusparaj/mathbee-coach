@@ -22,7 +22,7 @@ import type { WorldId } from '../learning/types';
 import { GATES_PER_RUN, type FlightQuestion, type FlightSkill, type FlightWorld, type GateVisual } from '../flight/types';
 import { correctLane, flightQuestion, gateAria, pictureAria, visualKey, visualLabel } from '../flight/questions';
 import { awardGate, canEarnFlightNectar, recordRun } from '../flight/rewards';
-import { drawGateVisual } from '../three/gateArt';
+import { drawGateVisual, visualAspect } from '../three/gateArt';
 import { Flight3D, With3D } from '../three/Lazy3D';
 import { use3D } from '../three/support';
 
@@ -152,7 +152,8 @@ export function GateArt({ visual, badge = false, accent, className = '' }: { vis
     let alive = true;
     const draw = () => {
       const ctx = alive ? c.getContext('2d') : null;
-      if (ctx) drawGateVisual(ctx, visual, c.width, { lang, badge, accent });
+      // size is the canvas height: day signs are twice as wide as they are tall
+      if (ctx) drawGateVisual(ctx, visual, c.height, { lang, badge, accent });
     };
     draw();
     // Baloo / Nunito may still be loading: draw again once they are in
@@ -160,7 +161,7 @@ export function GateArt({ visual, badge = false, accent, className = '' }: { vis
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, lang, badge, accent]);
-  return <canvas ref={ref} width={192} height={192} className={`gate-art ${className}`} aria-hidden />;
+  return <canvas ref={ref} width={192 * visualAspect(visual)} height={192} className={`gate-art kind-${visual.kind} ${className}`} aria-hidden />;
 }
 
 function Layer({ children, className, label, testId, world }: { children: ReactNode; className: string; label: string; testId: string; world: FlightWorld }) {

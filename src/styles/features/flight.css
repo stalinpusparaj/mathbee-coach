@@ -174,3 +174,10 @@ html.reduce-motion .f2-gate.on { transform: none; }
 }
 .flight-entry .fe-title { font-size: 1.25rem; font-weight: 900; line-height: 1.1; }
 .flight-entry .fe-hint { font-size: 0.9rem; font-weight: 700; opacity: 0.9; }
+
+/* day names on wide rectangular signs (2:1) so long names stay readable on a phone */
+.gate-art.kind-day { aspect-ratio: 2; }
+.f-picture .gate-art.kind-day { width: 112px; height: 56px; }
+.f-picture.n1 .gate-art.kind-day { width: 200px; height: 100px; }
+.f2-gate .gate-art.kind-day { width: 100%; max-width: 200px; aspect-ratio: 2; }
+.fl-choice .gate-art.kind-day { width: 100%; height: auto; aspect-ratio: 2; }

@@ -5,7 +5,7 @@ import { spriteUrl } from '../assets/manifest';
 import type { FlightQuestion, FlightWorld, GateVisual } from '../flight/types';
 import type { Lang } from '../i18n/i18n';
 import { billboard, cloud, disposeScene, emojiSprite, hive, island, lights, makeRenderer, skyDome, tree } from './kit';
-import { gateCanvas, type DrawOpts } from './gateArt';
+import { gateCanvas, visualAspect, type DrawOpts } from './gateArt';
 
 /**
  * Bee Flight in 3D: Buzzy (the painted bee billboard, wearing the current hat) flies down a
@@ -56,9 +56,13 @@ export function rowSpeed(dist: number | null, touched: boolean): number {
   return flightSpeed(dist);
 }
 
-/** Badge size (world units) for a gate visual: pictures with detail (groups, clocks, day cards) are drawn bigger. */
+/**
+ * Badge height (world units) for a gate visual: pictures with detail (groups, clocks) are drawn
+ * bigger. Day names sit on a 2:1 sign, 1.2 tall × 2.4 wide, on top of the arch, still clear of the next lane.
+ */
 export function badgeScale(v: GateVisual): number {
-  return v.kind === 'group' || v.kind === 'clock' || v.kind === 'day' ? 2.5 : 1.9;
+  if (v.kind === 'day') return 1.2;
+  return v.kind === 'group' || v.kind === 'clock' ? 2.5 : 1.9;
 }
 
 /** The lane whose centre is nearest to x (the gate the bee actually flies through). */
@@ -339,15 +343,17 @@ export default function Flight3D(props: Flight3DProps) {
           if (!ctx) return;
           // redraw in place (fonts arrived, or the language changed)
           const fresh = gateCanvas(choice.visual, opts(), 256);
-          ctx.clearRect(0, 0, 256, 256);
+          ctx.clearRect(0, 0, c.width, c.height);
           ctx.drawImage(fresh, 0, 0);
           tex.needsUpdate = true;
         };
         badges.push({ tex, canvas: c, draw });
         const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
         const size = badgeScale(choice.visual);
-        badge.scale.set(size, size, 1);
-        badge.position.set(0, 2.1 + (size - 1.9) / 2, 0);
+        badge.scale.set(size * visualAspect(choice.visual), size, 1);
+        // day signs sit just above the arch top (y ≈ 3.9: wider than the posts, clear of them); round badges
+        // grow upwards from the same centre line inside the arch
+        badge.position.set(0, choice.visual.kind === 'day' ? 4.0 + size / 2 : 2.1 + (size - 1.9) / 2, 0);
         gate.add(badge);
         group.add(gate);
       });
@@ -455,8 +461,9 @@ export default function Flight3D(props: Flight3DProps) {
     };
     const aimCamera = () => {
       const x = bee.position.x;
-      camera.position.set(x * 0.6, 3.1, 6.6);
-      camera.lookAt(x * 0.5, 1.1, -9);
+      // follow Buzzy only a little, so all three gates (and their signs) stay in view on a phone
+      camera.position.set(x * 0.1, 3.1, 6.6);
+      camera.lookAt(x * 0.08, 1.1, -9);
     };
     const resize = () => {
       const w = el.clientWidth || 1;
