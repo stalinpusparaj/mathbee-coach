@@ -5,6 +5,8 @@ import { Gallery } from './screens/Gallery';
 import { store } from './app/store';
 import { IS_ARTIFACT } from './app/platform';
 import './styles/app.css';
+// feature stylesheets (one per work package), loaded after the base styles
+import.meta.glob('./styles/features/*.css', { eager: true });
 
 const gallery = new URLSearchParams(location.search).has('gallery');
 if (!gallery) void store.init();

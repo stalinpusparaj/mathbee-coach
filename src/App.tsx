@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { store, useProfile, useStore } from './app/store';
+import { store, useProfile, useStore, GATED_ROUTES } from './app/store';
 import { WelcomeScreen, ProfilesScreen, ProfileNewScreen, ControlsScreen } from './screens/WelcomeScreens';
 import { GardenMapScreen, CategoryScreen, ResultsScreen, RestoreScreen, ReviewDueScreen } from './screens/GardenScreens';
 import { SessionScreen } from './screens/SessionScreen';
@@ -9,6 +9,12 @@ import { ParentDashboard, ParentSetup, SettingsScreen } from './screens/ParentSc
 import { useT, useLang } from './i18n/useT';
 import { music } from './audio/music';
 import { onSpeakingChange } from './audio/speech';
+import { initShell, send } from './app/shell';
+import { initBackNav } from './app/backNav';
+import { ParentGate } from './components/ParentGate';
+import { AdventureWorldsScreen, WorldMapScreen, LevelResultsScreen } from './screens/AdventureScreens';
+import { IntroStory } from './screens/IntroStory';
+import { SessionEndScreen } from './components/SessionEnd';
 
 export function App() {
   const ready = useStore((s) => s.ready);
@@ -17,6 +23,13 @@ export function App() {
   const profile = useProfile();
   const lang = useLang();
   const t = useT();
+  const gateOpen = useStore((s) => s.gateOpen);
+
+  // Android shell + back navigation: tell the shell when the first screen is ready
+  useEffect(() => {
+    initBackNav();
+    void initShell().then(() => send('ready'));
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang === 'ta' ? 'ta' : 'en';
@@ -90,6 +103,15 @@ export function App() {
     case 'parent': screen = <ParentDashboard />; break;
     case 'setup': screen = <ParentSetup />; break;
     case 'settings': screen = <SettingsScreen />; break;
+    case 'intro': screen = <IntroStory />; break;
+    case 'adventure': screen = <AdventureWorldsScreen />; break;
+    case 'adventure-world': screen = <WorldMapScreen world={route.world} />; break;
+    case 'level-results': screen = <LevelResultsScreen levelId={route.levelId} record={route.record} newNectar={route.newNectar} prevStars={route.prevStars} />; break;
+    case 'session-end': screen = <SessionEndScreen />; break;
+  }
+  // grown-up areas always go through the parent gate first
+  if (GATED_ROUTES.includes(route.name) && !gateOpen) {
+    screen = <ParentGate onPass={() => store.setGateOpen(true)} onCancel={() => store.setRoute({ name: 'map' })} />;
   }
   return (
     <>

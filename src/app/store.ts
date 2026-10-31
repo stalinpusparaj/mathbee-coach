@@ -22,7 +22,16 @@ export type Route =
   | { name: 'print'; categories: CategoryId[]; count: number; seed: number }
   | { name: 'parent' }
   | { name: 'setup' }
-  | { name: 'settings' };
+  | { name: 'settings' }
+  // ---- release 1.0 additions ----
+  | { name: 'intro' }
+  | { name: 'adventure' }
+  | { name: 'adventure-world'; world: string }
+  | { name: 'level-results'; levelId: string; record: SessionRecord; newNectar: number; prevStars: number }
+  | { name: 'session-end' };
+
+/** Grown-up areas: reaching them always goes through the parent gate (App.tsx route guard). */
+export const GATED_ROUTES: Route['name'][] = ['parent', 'setup', 'settings', 'tests', 'mock', 'mock-results', 'print'];
 
 export interface Store {
   ready: boolean;
@@ -31,12 +40,14 @@ export interface Store {
   storage: StorageMode;
   storageError: string | null;
   updateReady: boolean;
+  /** parent gate passed (memory only; cleared when the child area is shown again) */
+  gateOpen: boolean;
   /** remembered for "practise this stage" launches */
   lastLaunch?: { mode: Mode; category?: CategoryId; stage?: Stage; subskill?: string };
 }
 
 const persistence = new Persistence();
-let state: Store = { ready: false, app: emptyState(), route: { name: 'welcome' }, storage: 'memory', storageError: null, updateReady: false };
+let state: Store = { ready: false, app: emptyState(), route: { name: 'welcome' }, storage: 'memory', storageError: null, updateReady: false, gateOpen: false };
 const listeners = new Set<() => void>();
 
 function emit() {
@@ -55,9 +66,15 @@ export const store = {
     emit();
   },
   setRoute(route: Route) {
-    state = { ...state, route };
+    // leaving the grown-up area closes the gate again
+    const gateOpen = state.gateOpen && GATED_ROUTES.includes(route.name);
+    state = { ...state, route, gateOpen };
     emit();
     if (typeof window !== 'undefined') window.scrollTo?.({ top: 0 });
+  },
+  setGateOpen(v: boolean) {
+    state = { ...state, gateOpen: v };
+    emit();
   },
   setUpdateReady(v: boolean) {
     state = { ...state, updateReady: v };

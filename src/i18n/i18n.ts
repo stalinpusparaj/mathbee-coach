@@ -6,9 +6,21 @@ import { TA_UI } from './ta-ui';
 
 export type Lang = 'en' | 'ta';
 
+/** Feature string packs (src/i18n/packs/*.ts export EN and TA); base tables win on key clashes. */
+const PACKS = import.meta.glob<{ EN?: Record<string, string>; TA?: Record<string, string> }>('./packs/*.ts', { eager: true });
+const packEN: Record<string, string> = {};
+const packTA: Record<string, string> = {};
+for (const [file, mod] of Object.entries(PACKS)) {
+  for (const [k, v] of Object.entries(mod.EN ?? {})) {
+    if (import.meta.env?.DEV && (k in EN_UI || k in EN_CONTENT || k in packEN)) console.warn('duplicate i18n key in pack', file, k);
+    packEN[k] = v;
+  }
+  Object.assign(packTA, mod.TA ?? {});
+}
+
 const TABLES: Record<Lang, Record<string, string>> = {
-  en: { ...EN_CONTENT, ...EN_UI },
-  ta: { ...TA_CONTENT, ...TA_UI },
+  en: { ...packEN, ...EN_CONTENT, ...EN_UI },
+  ta: { ...packTA, ...TA_CONTENT, ...TA_UI },
 };
 
 const JOIN: Record<Lang, { sep: string; last: string }> = {
