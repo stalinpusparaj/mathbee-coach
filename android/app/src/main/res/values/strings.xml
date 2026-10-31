@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MathBee: Number Garden</string>
+    <string name="retry_title">Buzzy needs a tiny rest</string>
+    <string name="retry_body">Your garden is safe. Tap the button to play again.</string>
+    <string name="retry_button">Try again</string>
+    <string name="webview_title">Please update Android System WebView</string>
+    <string name="webview_body">MathBee needs a newer Android System WebView. A grown-up can update it in the Play Store app, then tap Try again.</string>
+    <string name="share_title">Share progress file</string>
+    <string name="print_job">MathBee worksheet</string>
+</resources>

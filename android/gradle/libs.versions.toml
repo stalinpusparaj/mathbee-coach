@@ -1,0 +1,19 @@
+[versions]
+agp = "9.4.1"
+kotlin = "2.4.20"
+coreKtx = "1.19.1"
+activity = "1.13.0"
+webkit = "1.17.1"
+splashscreen = "1.2.0"
+junit = "4.13.2"
+
+[libraries]
+core-ktx = { module = "androidx.core:core-ktx", version.ref = "coreKtx" }
+activity-ktx = { module = "androidx.activity:activity-ktx", version.ref = "activity" }
+webkit = { module = "androidx.webkit:webkit", version.ref = "webkit" }
+core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "splashscreen" }
+kotlin-gradle-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+junit = { module = "junit:junit", version.ref = "junit" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }

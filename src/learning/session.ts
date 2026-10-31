@@ -4,12 +4,25 @@ import { generateQuestion, getTemplate } from '../engine/registry';
 import { checkAnswer } from '../engine/check';
 import { SUBSKILL_BY_ID } from '../curriculum/curriculum';
 import type { ActiveSession, Attempt, DateStr, Profile, SessionRecord, Slot, SlotState } from './types';
-import { evaluateAll } from './mastery';
+import { evaluateAll, withinAdventureCap } from './mastery';
 import { updateReviews } from './review';
 import { assessmentFollowUp, errorFollowUp, prerequisiteSlot } from './planner';
 
 export const NECTAR_PER_QUESTION = 1;
 export const NECTAR_PER_SESSION = 1;
+/** An adventure level never grows by more than this many inserted follow-up questions. */
+export const ADVENTURE_MAX_INSERTS = 2;
+
+/**
+ * The key under which nectar for one question position (or `session` for the finishing bonus)
+ * is recorded in `profile.awarded`. Adventure levels are keyed by level and day, so each
+ * question position of a level pays at most once per day across all runs: replays cannot farm
+ * nectar, and a run that was stopped early never takes nectar away from a later full run.
+ * Other modes are keyed by session.
+ */
+export function awardKey(session: ActiveSession, today: DateStr, slot: number | 'session'): string {
+  return session.adventure ? `adv:${session.adventure.levelId}:${today}#${slot}` : `${session.id}#${slot}`;
+}
 
 export function newSlotState(): SlotState {
   return { work: {}, checks: 0, hints: 0, hintsBeforeFirstCheck: 0, solved: false, sawSolution: false, skipped: false, done: false, activeMs: 0, interruptions: 0 };
@@ -122,16 +135,21 @@ export function finishCurrent(profile: Profile, today: DateStr, now: number, opt
     errorTag: (st.firstErrorTag as ErrorTag | undefined) ?? (skipped ? 'no-answer' : undefined),
     firstResponse: st.firstResponse,
     unannounced: !!s.unannounced,
+    ...(session.adventure
+      ? { levelId: session.adventure.levelId, ...(withinAdventureCap(profile.attempts, s.subskill, today) ? {} : { countsAsEvidence: false as const }) }
+      : {}),
   };
   // Worked examples are demonstrations: they are not attempts.
   const record = s.phase !== 'worked';
-  const key = `${session.id}#${idx}`;
+  const key = awardKey(session, today, idx);
   const award = st.solved && !profile.awarded.includes(key) ? NECTAR_PER_QUESTION : 0;
 
   let plan = session.plan;
   const rng = createRng(hashString(`${session.id}:${idx}:adapt`));
+  // adventure levels stay short: at most ADVENTURE_MAX_INSERTS inserted questions per level
+  const insertsLeft = !session.adventure || plan.filter((x) => x.purpose === 'follow-up').length < ADVENTURE_MAX_INSERTS;
   const insert = (slot: Slot | null) => {
-    if (slot) plan = [...plan.slice(0, idx + 1), slot, ...plan.slice(idx + 1)];
+    if (slot && insertsLeft) plan = [...plan.slice(0, idx + 1), slot, ...plan.slice(idx + 1)];
   };
   const liveSession = { ...session, plan };
   if (!skipped && st.checks > 0 && record) {
@@ -154,6 +172,7 @@ export function finishCurrent(profile: Profile, today: DateStr, now: number, opt
     plan,
     index: finished ? idx : nextIndex,
     finished,
+    nectarPaid: (session.nectarPaid ?? 0) + award,
     slots: { ...session.slots, [idx]: { ...st, done: true, skipped }, ...(finished ? {} : { [nextIndex]: session.slots[nextIndex] ?? newSlotState() }) },
   };
   return {
@@ -176,9 +195,10 @@ export function endSession(profile: Profile, today: DateStr, now: number): { pro
   const session = profile.activeSession;
   if (!session) return { profile, record: null };
   const atts = profile.attempts.filter((a) => a.sessionId === session.id);
-  const bonusKey = `${session.id}#session`;
+  const bonusKey = awardKey(session, today, 'session');
   const bonus = session.finished && atts.length > 0 && !profile.awarded.includes(bonusKey) ? NECTAR_PER_SESSION : 0;
-  const questionNectar = profile.awarded.filter((k) => k.startsWith(`${session.id}#`) && k !== bonusKey).length;
+  // sessions saved before nectarPaid existed fall back to their per-session award keys
+  const questionNectar = session.nectarPaid ?? profile.awarded.filter((k) => k.startsWith(`${session.id}#`) && k !== bonusKey).length;
   const record: SessionRecord = {
     id: session.id,
     mode: session.mode,
@@ -191,6 +211,7 @@ export function endSession(profile: Profile, today: DateStr, now: number): { pro
     nectar: questionNectar + bonus,
     categories: [...new Set(atts.map((a) => a.category))],
     completed: session.finished,
+    ...(session.adventure ? { theme: session.adventure.theme, levelId: session.adventure.levelId } : {}),
   };
   return {
     profile: {

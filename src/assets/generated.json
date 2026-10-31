@@ -1,1 +1,112 @@
-[]
+[
+ {
+  "id": "bee_celebrate",
+  "file": "assets/generated/bee_celebrate.webp",
+  "width": 325,
+  "height": 307,
+  "kind": "sprite",
+  "alt": "Bee celebrating",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "bee_point",
+  "file": "assets/generated/bee_point.webp",
+  "width": 325,
+  "height": 307,
+  "kind": "sprite",
+  "alt": "Bee pointing",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "bee_sleep",
+  "file": "assets/generated/bee_sleep.webp",
+  "width": 326,
+  "height": 307,
+  "kind": "sprite",
+  "alt": "Sleepy yawning bee",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "bee_think",
+  "file": "assets/generated/bee_think.webp",
+  "width": 325,
+  "height": 306,
+  "kind": "sprite",
+  "alt": "Bee thinking",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_garden",
+  "file": "assets/generated/world_garden.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Queen Bee's golden hive garden (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_ice",
+  "file": "assets/generated/world_ice.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Ice floes bay (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_meadow",
+  "file": "assets/generated/world_meadow.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Flower meadow (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_orchard",
+  "file": "assets/generated/world_orchard.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Apple orchard (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_river",
+  "file": "assets/generated/world_river.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Ferry river (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_town",
+  "file": "assets/generated/world_town.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Clock town square (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ },
+ {
+  "id": "world_trail",
+  "file": "assets/generated/world_trail.webp",
+  "width": 1376,
+  "height": 768,
+  "kind": "background",
+  "alt": "Stepping-stone forest trail (adventure world background)",
+  "source": "generated: Google Flow \u00b7 Nano Banana 2.1 (2026-10-31)",
+  "sourceRect": []
+ }
+]

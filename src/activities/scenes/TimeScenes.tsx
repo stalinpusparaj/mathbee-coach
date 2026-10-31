@@ -1,22 +1,29 @@
 import type { SceneProps } from '../sceneTypes';
 import { num, SOLUTION } from '../sceneTypes';
+import { activeSkin, type SkinnedSceneProps } from './skins';
 import { Clock } from '../../components/Clock';
 import { Calendar } from '../../components/Calendar';
 import { addMinutes, addWeekdays, weekdayOf, WEEKDAY_KEYS, formatTime } from '../../engine/math';
 import { useT } from '../../i18n/useT';
 import { Sprite } from '../../components/art';
 
-/** C10: stepping stones; tapping a gap stone selects its answer field. */
-export function TrailScene({ q, response, interactive, reveal, bw, onFieldFocus }: SceneProps) {
+/**
+ * C10: stepping stones; tapping a gap stone selects its answer field. Lily-Pad Hop skin: the
+ * stones become pads on water (or ice floes / river stones) and an empty pad lights up once
+ * it has a number.
+ */
+export function TrailScene({ q, response, interactive, reveal, bw, onFieldFocus, skin }: SkinnedSceneProps) {
   const t = useT();
   if (q.scene.type !== 'trail') return null;
   const s = q.scene;
+  const lily = bw ? null : activeSkin(skin, q);
+  const pad = lily?.family === 'lily-hop' ? lily.pad : null;
   const fields = q.answer.kind === 'fields' ? q.answer.fields : null;
   const values = response?.kind === 'fields' ? response.values : {};
   const single = q.answer.kind === 'number' ? (response?.kind === 'number' ? response.value : null) : null;
   let gapIndex = 0;
   return (
-    <div className={`scene trail ${bw ? 'bw' : ''}`}>
+    <div className={`scene trail ${bw ? 'bw' : ''} ${pad ? `skin-lily pad-${pad}` : ''}`} data-skin={pad ? 'lily-hop' : undefined}>
       <p className="rule-tag" aria-hidden>{s.rule.dir === 'forward' ? '→' : '←'} {s.rule.dir === 'forward' ? '+' : '−'}{s.rule.step}</p>
       <ol className="stones">
         {s.stones.map((v, i) => {
@@ -25,7 +32,7 @@ export function TrailScene({ q, response, interactive, reveal, bw, onFieldFocus 
           const fid = fields ? fields[k].id : null;
           const shown = reveal >= SOLUTION ? (fields ? fields[k].value : q.answer.kind === 'number' ? q.answer.value : '') : fields ? values[fid!] ?? '' : single ?? '';
           return (
-            <li key={i} className="stone gap">
+            <li key={i} className={`stone gap ${pad && shown !== '' ? 'filled' : ''}`}>
               <button type="button" onClick={() => fid && onFieldFocus?.(fid)} disabled={!interactive || !fid} aria-label={t('label.gap', { n: k + 1 })} data-testid={`gap-${k}`}>
                 {shown === '' ? '?' : shown}
               </button>
@@ -37,11 +44,16 @@ export function TrailScene({ q, response, interactive, reveal, bw, onFieldFocus 
   );
 }
 
-/** C11: day cards in order (Monday first); a bee walks one day at a time, wrapping round. */
-export function WeekScene({ q, work, setWork, response, setResponse, interactive, reveal, bw }: SceneProps) {
+/**
+ * C11: day cards in order (Monday first); a bee walks one day at a time, wrapping round.
+ * Bee Postman skin (walking questions): the days are houses along a street and the bee
+ * carries a letter from house to house; the answer is still chosen below.
+ */
+export function WeekScene({ q, work, setWork, response, setResponse, interactive, reveal, bw, skin }: SkinnedSceneProps) {
   const t = useT();
   if (q.scene.type !== 'week') return null;
   const s = q.scene;
+  const postman = !bw && activeSkin(skin, q)?.family === 'postman';
   if (s.cards && q.answer.kind === 'order') {
     const cur = response?.kind === 'order' ? response.value : [];
     return (
@@ -65,12 +77,15 @@ export function WeekScene({ q, work, setWork, response, setResponse, interactive
   const steps = reveal >= SOLUTION ? s.offset ?? 0 : num(work.steps);
   const pos = addWeekdays(start, dir * steps);
   return (
-    <div className={`scene week ${bw ? 'bw' : ''}`}>
+    <div className={`scene week ${bw ? 'bw' : ''} ${postman ? 'skin-postman' : ''}`} data-skin={postman ? 'postman' : undefined}>
+      {postman && <p className="postman-sign" aria-hidden>✉️ {t('skin.postmanStreet')}</p>}
       <ol className="week-row">
         {WEEKDAY_KEYS.map((k, i) => (
           <li key={k} className={`day ${i === start && s.start !== undefined ? 'start' : ''} ${s.highlight?.includes(i) ? 'hl' : ''} ${i === pos && s.start !== undefined && steps > 0 ? 'bee-here' : ''}`}>
+            {postman && <span className="house-roof" aria-hidden />}
             <span className="day-name">{t(`day.${k}`)}</span>
             {i === pos && s.start !== undefined && <Sprite id="bee" size={30} className="bee-token" decorative />}
+            {postman && i === pos && <span className="postman-letter" aria-hidden>✉️</span>}
           </li>
         ))}
       </ol>

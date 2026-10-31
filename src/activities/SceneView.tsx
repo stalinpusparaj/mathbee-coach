@@ -1,4 +1,5 @@
 import type { SceneProps } from './sceneTypes';
+import type { SkinnedSceneProps } from './scenes/skins';
 import { CountScene } from './scenes/CountScene';
 import { FerryScene } from './scenes/FerryScene';
 import { BirdScene } from './scenes/BirdScene';
@@ -9,8 +10,11 @@ import { PairsScene } from './scenes/PairsScene';
 import { AddScene, SubScene } from './scenes/ArithmeticScenes';
 import { TrailScene, WeekScene, ClockScene, CalendarScene, StoryScene } from './scenes/TimeScenes';
 
-/** Chooses the activity renderer for a question's scene type. */
-export function SceneView(props: SceneProps) {
+/**
+ * Chooses the activity renderer for a question's scene type. `skin` (adventure mini levels)
+ * only changes the look; scenes it does not fit ignore it.
+ */
+export function SceneView(props: SkinnedSceneProps) {
   switch (props.q.scene.type) {
     case 'count': return <CountScene {...props} />;
     case 'ferry': return <FerryScene {...props} />;

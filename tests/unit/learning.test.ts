@@ -14,6 +14,10 @@ import { ActiveTimer } from '../../src/learning/activeTime';
 import type { Profile, Slot, Attempt } from '../../src/learning/types';
 import type { AnswerSpec, Response } from '../../src/engine/types';
 import { DEFAULT_SETTINGS } from '../../src/learning/types';
+import { LEVEL_BY_ID, WORLD_BY_ID } from '../../src/adventure/levels';
+import { planAdventureLevel } from '../../src/adventure/planner';
+import { petalsForAttempt, recordLevelResult } from '../../src/adventure/progress';
+import { ADVENTURE_EVIDENCE_CAP, evidenceSessionKey } from '../../src/learning/mastery';
 
 const T0 = '2026-09-01';
 
@@ -291,5 +295,130 @@ describe('show solution', () => {
     p = finishCurrent(p, T0, 1).profile;
     const a: Attempt = p.attempts[0];
     expect(a.independent).toBe(false);
+  });
+});
+
+// ---------------- adventure (WP3) ----------------
+
+/** Play one adventure level through the session engine (true = right first time, 'hint', false = wrong then right). */
+function playLevel(p: Profile, levelId: string, id: string, date: string, answer: boolean | 'hint' = true): Profile {
+  const level = LEVEL_BY_ID[levelId];
+  const plan = planAdventureLevel(createRng(id.length * 31 + 7), p, level, date);
+  p = startSession(p, id, 'adventure', plan, Date.parse(date), { adventure: { levelId, world: level.world, theme: WORLD_BY_ID[level.world].theme } });
+  let k = 0;
+  while (p.activeSession && !p.activeSession.finished) {
+    const s = p.activeSession.plan[p.activeSession.index];
+    const q = generateQuestion(s.templateId, s.seed, s.format);
+    if (answer === 'hint') p = useHint(p);
+    if (answer === false) p = checkCurrent(p, wrong(q.answer), 3000, 0).profile;
+    p = checkCurrent(p, right(q.answer), 3000, 0).profile;
+    p = finishCurrent(p, date, Date.parse(date) + ++k * 1000).profile;
+  }
+  return endSession(p, date, Date.parse(date) + 99999).profile;
+}
+
+describe('adventure evidence safeguards', () => {
+  it('two levels on the same day count as one evidence session; another day counts again', () => {
+    let p = base();
+    p = playLevel(p, 'w1-01', 'a1', T0);
+    p = playLevel(p, 'w1-04', 'a2', T0);
+    expect(evaluateSkill('C01.to5', p.attempts, p.settings.mastery).sessions).toBe(1);
+    expect(new Set(p.attempts.map(evidenceSessionKey))).toEqual(new Set([`adv:${T0}`]));
+    p = playLevel(p, 'w1-01', 'a3', addDays(T0, 1));
+    expect(evaluateSkill('C01.to5', p.attempts, p.settings.mastery).sessions).toBe(2);
+  });
+
+  it('only the first 8 adventure attempts per subskill per day are evidence; the rest still earn petals', () => {
+    let p = base();
+    p = playLevel(p, 'w1-01', 'a1', T0); // 5 × C01.to5
+    p = playLevel(p, 'w1-04', 'a2', T0); // 6 × C01.to5
+    const c01 = p.attempts.filter((a) => a.subskill === 'C01.to5');
+    expect(c01).toHaveLength(11);
+    expect(c01.filter((a) => a.countsAsEvidence === false)).toHaveLength(11 - ADVENTURE_EVIDENCE_CAP);
+    expect(c01.every((a) => a.levelId === 'w1-01' || a.levelId === 'w1-04')).toBe(true);
+    const e = evaluateSkill('C01.to5', p.attempts, p.settings.mastery);
+    expect(e.attempts).toBe(ADVENTURE_EVIDENCE_CAP);
+    expect(e.independentAttempts).toBe(ADVENTURE_EVIDENCE_CAP);
+    expect(c01.filter((a) => a.countsAsEvidence === false).every((a) => petalsForAttempt(a) === 2)).toBe(true);
+    // a new day has a fresh allowance
+    p = playLevel(p, 'w1-01', 'a3', addDays(T0, 1));
+    expect(p.attempts.filter((a) => a.date === addDays(T0, 1) && a.countsAsEvidence === false)).toHaveLength(0);
+  });
+
+  it('over-cap attempts are removed entirely: they cannot inflate "learning with support"', () => {
+    let p = base();
+    for (const id of ['h1', 'h2', 'h3']) p = playLevel(p, 'w1-01', id, T0, 'hint');
+    const e = evaluateSkill('C01.to5', p.attempts, p.settings.mastery);
+    expect(p.attempts).toHaveLength(15);
+    expect(e.attempts).toBe(ADVENTURE_EVIDENCE_CAP);
+    expect(e.supportedCompletions).toBe(ADVENTURE_EVIDENCE_CAP);
+    expect(e.retentionChecks.length + e.transferChecks.length).toBe(0);
+  });
+
+  it('an adventure level gets at most 2 inserted follow-up questions', () => {
+    const p = playLevel(base(), 'w1-06', 'f1', T0, false);
+    const run = p.attempts.filter((a) => a.sessionId === 'f1');
+    expect(run.filter((a) => a.purpose === 'follow-up').length).toBeLessThanOrEqual(2);
+    expect(run.length).toBeLessThanOrEqual(LEVEL_BY_ID['w1-06'].questions + 2);
+  });
+
+  it('the session record carries the world theme and level; other modes are unchanged', () => {
+    const p = playLevel(base(), 'w1-03', 'r1', T0);
+    expect(p.sessions[0]).toMatchObject({ mode: 'adventure', theme: 'meadow', levelId: 'w1-03', completed: true, categories: ['C04'] });
+    const q = play(base(), 'pr', slots('c01-e-row', 'C01.to5', 2, 1), [true], T0);
+    expect('theme' in q.sessions[0]).toBe(false);
+    expect('levelId' in q.sessions[0]).toBe(false);
+    expect('levelId' in q.attempts[0]).toBe(false);
+  });
+});
+
+describe('adventure save data', () => {
+  it('old saves load with adventure progress and the new settings defaulted', () => {
+    const p = base();
+    const old = JSON.parse(JSON.stringify(p));
+    delete old.adventure;
+    delete old.settings.adventureOpenAll;
+    delete old.settings.dailyLimitMin;
+    delete old.settings.haptics;
+    const st = migrate({ schemaVersion: 1, profiles: [old], activeProfileId: p.id });
+    expect(st.profiles[0].adventure).toEqual({ version: 1, levels: {}, friendsCelebrated: [], lastLevelId: null });
+    expect(st.profiles[0].settings).toMatchObject({ adventureOpenAll: false, dailyLimitMin: 0, haptics: true });
+  });
+
+  it('import drops unknown level ids silently, clamps stars to 0–3, and round-trips good progress', () => {
+    const p = recordLevelResult(playLevel(base(), 'w1-01', 'i1', T0), 'w1-01', 'i1', T0);
+    expect(p.adventure!.levels['w1-01'].stars).toBe(3);
+    const good = JSON.parse(JSON.stringify(exportPayload({ ...emptyState(), profiles: [p], activeProfileId: p.id }, T0)));
+    const ok = validateImport(good);
+    expect(ok.ok && ok.state.profiles[0].adventure).toEqual(p.adventure);
+    const odd = JSON.parse(JSON.stringify(good));
+    odd.state.profiles[0].adventure.levels['w9-99'] = { stars: 3, bestPetals: 1, maxPetals: 2, plays: 1, firstClearedOn: T0, lastPlayedOn: T0 };
+    odd.state.profiles[0].adventure.levels['w1-02'] = { stars: 7, bestPetals: -4, maxPetals: 10, plays: 2.5, firstClearedOn: 'x', lastPlayedOn: T0 };
+    odd.state.profiles[0].adventure.friendsCelebrated = ['w1', 'w42', 'w1'];
+    odd.state.profiles[0].adventure.lastLevelId = 'gone';
+    odd.state.profiles[0].settings.dailyLimitMin = 45;
+    const r = validateImport(odd);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const adv = r.state.profiles[0].adventure!;
+    expect(Object.keys(adv.levels).sort()).toEqual(['w1-01', 'w1-02']);
+    expect(adv.levels['w1-02']).toEqual({ stars: 3, bestPetals: 0, maxPetals: 10, plays: 2, firstClearedOn: null, lastPlayedOn: T0 });
+    expect(adv.friendsCelebrated).toEqual(['w1']);
+    expect(adv.lastLevelId).toBeNull();
+    expect(r.state.profiles[0].settings.dailyLimitMin).toBe(0);
+  });
+
+  it('import validates the new attempt fields', () => {
+    const p = playLevel(base(), 'w1-01', 'i2', T0);
+    const good = JSON.parse(JSON.stringify(exportPayload({ ...emptyState(), profiles: [p], activeProfileId: p.id }, T0)));
+    const bad = JSON.parse(JSON.stringify(good));
+    bad.state.profiles[0].attempts[0].countsAsEvidence = true;
+    expect(validateImport(bad).ok).toBe(false);
+    const bad2 = JSON.parse(JSON.stringify(good));
+    bad2.state.profiles[0].attempts[0].levelId = 42;
+    expect(validateImport(bad2).ok).toBe(false);
+    const bad3 = JSON.parse(JSON.stringify(good));
+    bad3.state.profiles[0].adventure = [];
+    expect(validateImport(bad3).ok).toBe(false);
   });
 });

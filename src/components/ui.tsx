@@ -1,23 +1,38 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Sprite } from './art';
+import { pushOverlay } from '../app/backNav';
 
+/**
+ * A dialog. When it can be closed (`onClose`), Escape and Android back close it: it registers
+ * itself as a back-navigation overlay, so back closes the newest open dialog first (LIFO).
+ */
 export function Modal({ title, children, onClose }: { title: string; children: ReactNode; onClose?: () => void }) {
   const ref = useRef<HTMLDivElement>(null);
+  // keep the latest onClose without re-registering (callers often pass inline arrows)
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  const closable = !!onClose;
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null;
     ref.current?.querySelector<HTMLElement>('button, [href], input, select')?.focus();
+    return () => prev?.focus?.();
+  }, []);
+  useEffect(() => {
+    if (!closable) return;
+    const close = () => closeRef.current?.();
     const key = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onClose) {
+      if (e.key === 'Escape') {
         e.stopPropagation();
-        onClose();
+        close();
       }
     };
     window.addEventListener('keydown', key, true);
+    const offBack = pushOverlay(close);
     return () => {
       window.removeEventListener('keydown', key, true);
-      prev?.focus?.();
+      offBack();
     };
-  }, [onClose]);
+  }, [closable]);
   return (
     <div className="modal-backdrop" role="presentation">
       <div className="modal" role="dialog" aria-modal="true" aria-label={title} ref={ref}>

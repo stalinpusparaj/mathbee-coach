@@ -1,11 +1,14 @@
-import type { SceneProps } from '../sceneTypes';
 import { arr, SOLUTION } from '../sceneTypes';
+import { activeSkin, type SkinnedSceneProps } from './skins';
 import { Sprite } from '../../components/art';
 import { useDragOrTap } from '../../components/dnd';
 import { useT } from '../../i18n/useT';
 
-/** C02: move animals from the dock onto the ferry (drag, or tap animal then tap ferry). */
-export function FerryScene({ q, work, setWork, interactive, reveal, bw }: SceneProps) {
+/**
+ * C02: move animals from the dock onto the ferry (drag, or tap animal then tap ferry).
+ * Ferry Loader skin: a river under the boat and animals that waddle aboard (look only).
+ */
+export function FerryScene({ q, work, setWork, interactive, reveal, bw, skin }: SkinnedSceneProps) {
   const t = useT();
   const onBoard = arr<string>(work.onBoard);
   const dnd = useDragOrTap((obj, zone) => {
@@ -47,12 +50,13 @@ export function FerryScene({ q, work, setWork, interactive, reveal, bw }: SceneP
     );
   }
 
+  const loader = !bw && activeSkin(skin, q)?.family === 'ferry-loader';
   const showCounts = reveal >= 2 || reveal >= SOLUTION;
   const dock = s.animals.filter((a) => !onBoard.includes(a.id) && reveal < SOLUTION);
   const boarded = reveal >= SOLUTION ? s.animals : s.animals.filter((a) => onBoard.includes(a.id));
   const counts = s.types.map((ty) => ({ ty, n: s.animals.filter((a) => a.kind === ty).length }));
   return (
-    <div className={`scene ferry ${bw ? 'bw' : ''}`}>
+    <div className={`scene ferry ${bw ? 'bw' : ''} ${loader ? 'skin-ferry-loader' : ''}`} data-skin={loader ? 'ferry-loader' : undefined}>
       <button type="button" className="zone dock" {...dnd.zoneProps('dock')} aria-label={t('ui.dock')} disabled={!interactive}>
         <span className="zone-label">{t('ui.dock')}</span>
       </button>

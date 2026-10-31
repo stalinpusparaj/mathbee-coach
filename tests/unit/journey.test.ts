@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { themeFor, platformPositions, worldWidth, cameraOffset, storyBeat, THEMES } from '../../src/activities/journey';
+import { readFileSync } from 'node:fs';
+import { themeFor, platformPositions, worldWidth, cameraOffset, storyBeat, THEMES, WORLD_PALETTE, worldVars, type JourneyTheme } from '../../src/activities/journey';
 import { CATEGORIES } from '../../src/curriculum/curriculum';
 import { t } from '../../src/i18n/i18n';
 
@@ -42,6 +43,15 @@ describe('journey', () => {
         expect(t(`journey.end.${th}`, lang)).not.toBe(`journey.end.${th}`);
         expect(t(`friend.${th}`, lang)).not.toBe(`friend.${th}`);
       }
+    }
+  });
+  it('each world has a palette, and the CSS world tokens match it', () => {
+    const css = readFileSync('src/styles/features/adventure.css', 'utf8');
+    for (const th of Object.keys(THEMES) as JourneyTheme[]) {
+      expect(WORLD_PALETTE[th].accent).toMatch(/^#[0-9a-f]{6}$/);
+      const rule = css.match(new RegExp(`\\[data-world='${th}'\\]\\s*\\{([^}]*)\\}`));
+      expect(rule, th).not.toBeNull();
+      for (const [k, v] of Object.entries(worldVars(th))) expect(rule![1], `${th} ${k}`).toContain(`${k}: ${v};`);
     }
   });
 });

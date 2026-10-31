@@ -1,5 +1,7 @@
-import type { AppState, Profile } from '../learning/types';
+import type { AdventureLevelProgress, AdventureProgress, AppState, Profile, Settings, WorldId } from '../learning/types';
 import { DEFAULT_COMPETITION, DEFAULT_SETTINGS } from '../learning/types';
+import { LEVEL_BY_ID, WORLD_BY_ID } from '../adventure/levels';
+import { emptyAdventure } from '../adventure/progress';
 import { isValidDateStr } from '../learning/dates';
 import { getTemplate } from '../engine/registry';
 import { SUBSKILL_BY_ID } from '../curriculum/curriculum';
@@ -33,6 +35,7 @@ export function newProfile(id: string, avatar: string, nickname: string, languag
     treasures: [],
     beeHat: null,
     screened: [],
+    adventure: emptyAdventure(),
     activeSession: null,
     activeMock: null,
     mockHistory: [],
@@ -56,13 +59,61 @@ function fillDefaults(p: Profile): Profile {
   return {
     ...newProfile(p.id, p.avatar, p.nickname ?? '', p.language ?? 'en', p.createdAt ?? '2026-01-01'),
     ...p,
-    settings: { ...DEFAULT_SETTINGS, ...(p.settings ?? {}), mastery: { ...DEFAULT_SETTINGS.mastery, ...(p.settings?.mastery ?? {}) } },
+    settings: cleanSettings({ ...DEFAULT_SETTINGS, ...(p.settings ?? {}), mastery: { ...DEFAULT_SETTINGS.mastery, ...(p.settings?.mastery ?? {}) } }),
     competition: { ...DEFAULT_COMPETITION, ...(p.competition ?? {}) },
     // fun extras: keep only well-formed entries (imports are untrusted)
     treasures: Array.isArray(p.treasures)
       ? p.treasures.filter((t) => t && isValidDateStr(t.date) && typeof t.id === 'string' && t.id.length <= 8).slice(0, 5000)
       : [],
     beeHat: typeof p.beeHat === 'string' && p.beeHat.length <= 8 ? p.beeHat : null,
+    adventure: cleanAdventure(p.adventure),
+  };
+}
+
+const DAILY_LIMITS: Settings['dailyLimitMin'][] = [0, 15, 20, 30];
+
+/** New settings fields are checked like any untrusted input: unknown values fall back to defaults. */
+function cleanSettings(s: Settings): Settings {
+  return {
+    ...s,
+    adventureOpenAll: typeof s.adventureOpenAll === 'boolean' ? s.adventureOpenAll : DEFAULT_SETTINGS.adventureOpenAll,
+    dailyLimitMin: DAILY_LIMITS.includes(s.dailyLimitMin) ? s.dailyLimitMin : DEFAULT_SETTINGS.dailyLimitMin,
+    haptics: typeof s.haptics === 'boolean' ? s.haptics : DEFAULT_SETTINGS.haptics,
+  };
+}
+
+const count = (v: unknown, max = 1_000_000) => (typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(0, Math.floor(v))) : 0);
+
+/**
+ * Adventure progress from a save or an import. Unknown level ids (a level renamed or removed
+ * in a later version) are dropped silently so old backups stay importable; stars are clamped
+ * to 0–3 and counts to non-negative integers.
+ */
+export function cleanAdventure(raw: unknown): AdventureProgress {
+  const a = raw as Partial<AdventureProgress> | null | undefined;
+  if (!a || typeof a !== 'object') return emptyAdventure();
+  const levels: Record<string, AdventureLevelProgress> = {};
+  if (a.levels && typeof a.levels === 'object') {
+    for (const [id, l] of Object.entries(a.levels as Record<string, Partial<AdventureLevelProgress>>)) {
+      if (!LEVEL_BY_ID[id] || !l || typeof l !== 'object') continue;
+      const maxPetals = count(l.maxPetals, 64);
+      levels[id] = {
+        stars: Math.min(3, count(l.stars)) as AdventureLevelProgress['stars'],
+        bestPetals: Math.min(count(l.bestPetals, 64), maxPetals),
+        maxPetals,
+        plays: count(l.plays),
+        firstClearedOn: isValidDateStr(l.firstClearedOn) ? l.firstClearedOn : null,
+        lastPlayedOn: isValidDateStr(l.lastPlayedOn) ? l.lastPlayedOn : null,
+        ...(typeof l.lastSessionId === 'string' && l.lastSessionId.length <= 80 ? { lastSessionId: l.lastSessionId } : {}),
+      };
+    }
+  }
+  const friends = Array.isArray(a.friendsCelebrated) ? a.friendsCelebrated.filter((w): w is WorldId => typeof w === 'string' && w in WORLD_BY_ID) : [];
+  return {
+    version: 1,
+    levels,
+    friendsCelebrated: [...new Set(friends)],
+    lastLevelId: typeof a.lastLevelId === 'string' && LEVEL_BY_ID[a.lastLevelId] ? a.lastLevelId : null,
   };
 }
 
@@ -100,6 +151,8 @@ export function validateImport(data: unknown): { ok: true; state: AppState } | {
       if (!isValidDateStr(a.date)) { bad('invalid date'); break; }
       if (typeof a.firstCorrect !== 'boolean' || typeof a.independent !== 'boolean') { bad('invalid correctness flags'); break; }
       if (typeof a.activeMs !== 'number' || a.activeMs < 0) { bad('invalid time'); break; }
+      if (a.levelId !== undefined && (typeof a.levelId !== 'string' || a.levelId.length > 40)) { bad('invalid level id'); break; }
+      if (a.countsAsEvidence !== undefined && a.countsAsEvidence !== false) { bad('invalid evidence flag'); break; }
       if (errors.length > 20) break;
     }
     if (p.reviews && typeof p.reviews === 'object') {
@@ -107,6 +160,7 @@ export function validateImport(data: unknown): { ok: true; state: AppState } | {
         if (!SUBSKILL_BY_ID[k] || !isValidDateStr(r?.due)) errors.push(`${where}: invalid review record ${k}.`);
       }
     } else errors.push(`${where}: reviews missing.`);
+    if (p.adventure !== undefined && (p.adventure === null || typeof p.adventure !== 'object' || Array.isArray(p.adventure))) errors.push(`${where}: invalid adventure progress.`);
   });
   if (errors.length) return { ok: false, errors: errors.slice(0, 25) };
   try {

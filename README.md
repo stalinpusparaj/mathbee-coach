@@ -4,6 +4,36 @@ An offline, browser-based maths practice game for a Grade 1 child preparing for 
 
 MathBee Coach is an independent practice app. It is not affiliated with any competition or publisher, it does not promise results, and it does not diagnose learning difficulties.
 
+## Release 1.0 (Google Play: "MathBee: Number Garden")
+
+Version 1.0 turns the practice app into a calm, story-led adventure and wraps it in an offline Android app. Everything still works in a browser.
+
+- **Adventure Mode** (`src/adventure/`, `src/screens/AdventureScreens.tsx`): 7 worlds and 2 bonus levels, 81 levels in all, each 5–8 questions. Levels open one after another along a winding path of flower buds. A finished level blooms 1–3 flowers. Hints never cost flowers; only seeing the solution or skipping does. The best result is kept. Each world ends at a friend's house with a short party scene and a "Play together" idea for the grown-up. Extension levels become optional side paths when extensions are hidden. There is no trophy for perfect scores, nothing is timed, and closed buds never show padlocks.
+- **The garden map leads the way**: its main button is "Next adventure: …", with the adventure worlds and today's practice mission beside it. Worksheets and tests moved into the grown-up area.
+- **Mini-game skins**: Bubble Pop, Lily-Pad Hop (lily pads, ice floes, stepping stones), Ferry Loader and Bee Postman. They change only the look, never the question or its answer.
+- **Feel**: squash on taps, pollen bursts, nectar arcs, a gentle wobble (never a shake or red cross) on a wrong answer, about 20 synthesised sounds pitched to each world's key, a world-specific variation of the music, and haptics in the Android app. Every effect has a reduced-motion path.
+- **Story intro and onboarding**: a new player hears a 5-page narrated story (skippable after 2 s), then the button practice.
+- **Calm endings**: an optional daily play limit (15/20/30 minutes, off by default) is checked only between levels. The session-end scene has just "Show my garden" and "Done".
+- **Parent gate**: grown-up screens ask an adult multiplication (for example 37 × 6), typed on a keypad, shown in English and Tamil. After 3 wrong answers it rests for 30 seconds.
+- **Parent area**: Tests and printing, "At home" ideas from the report, daily limit, "open all levels", haptics, back up or share progress to a file, install a Tamil voice (Android), and the bundled privacy policy.
+- **Bundled fonts** (Nunito, Baloo 2, Noto Sans Tamil) so the app looks the same offline on every device.
+
+## Android app
+
+The Android app is a small Kotlin shell (`android/`) around the same web game, served offline from inside the APK. It has no permissions at all (no internet, no advertising id) and collects no data. Speech uses the phone's own offline voices. Back, pause and resume, saving and sharing files, printing, haptics and keep-awake during a level go through a small message bridge. See [docs/ANDROID.md](docs/ANDROID.md) for the full protocol, signing and the release checklist.
+
+```bash
+npm run build:android          # typecheck + vite build --mode android → dist-android/ (base /web/, no service worker)
+```
+
+```bash
+npm run android:debug          # the build above, then ./gradlew :app:assembleDebug in android/
+```
+
+Gradle needs `JAVA_HOME` set to a JDK 17 (for example Android Studio's JBR) and `android/local.properties` with `sdk.dir`. Release bundles (`./gradlew :app:bundleRelease`) are signed only when `android/keystore.properties` exists, and they **fail on purpose** until the `[DEVELOPER NAME]`, `[CONTACT EMAIL]` and `[LAST UPDATED]` placeholders in `public/privacy.html` are filled in.
+
+On Android, back inside a level opens the pause sheet; back on the garden map or welcome screen shows a "Bye-bye for now?" sheet before the app closes.
+
 ## Quick start
 
 Requires Node.js 20+ (developed on Node 26) and npm.
@@ -32,13 +62,13 @@ npm run preview
 npm test
 ```
 
-Unit tests (Vitest, 88 tests): all 42 category–stage combinations, exact worksheet maths, learning-state rules, review scheduling, rewards, import validation, i18n completeness.
+Unit tests (Vitest, 23 files): all 42 category–stage combinations, exact worksheet maths, learning-state rules, review scheduling, rewards, import validation, i18n completeness (including every string pack in English and Tamil), the 81 adventure levels, petals and blooms, unlocking, the planner, skins, the world map layout, the juice and sound kits, the parent gate, and the Android message bridge.
 
 ```bash
 npm run test:e2e
 ```
 
-Browser flows (Playwright, 14 tests) against the production build. They use the locally installed Google Chrome (`channel: 'chrome'`); set `PW_CHANNEL=chromium` after `npx playwright install chromium` if Chrome is not installed.
+Browser flows (Playwright) against the production build: the original flows, the parent gate and intro (`gate.spec.ts`), Adventure Mode (`adventure.spec.ts`), the Android bridge with a stub `MathBeeAndroid` (`android-shell.spec.ts`), and phone/tablet layouts at 360×640, 412×915, 915×412 and 768×1024 (`phone-layout.spec.ts`). They use the locally installed Google Chrome (`channel: 'chrome'`); set `PW_CHANNEL=chromium` after `npx playwright install chromium` if Chrome is not installed. Under `?e2e` the parent gate exposes its answer in `data-answer` (never in the Android build).
 
 Regenerate the coverage matrix and asset manifest from the code:
 
@@ -104,15 +134,17 @@ How it works: sprites are requested on a flat magenta background, which `tools/p
 
 | Screen | Notes |
 |---|---|
-| Welcome | Play, Continue, sound toggle, "hold for grown-ups" (a press-and-hold convenience gate, not security). |
+| Welcome | Play, Continue, sound toggle, a "Grown-ups" button that opens the parent gate. |
+| Story intro | 5 narrated pages for a new player (skip after 2 s), then the button practice. |
 | Local profile | Avatar, optional nickname (≤20 chars), English/Tamil, Grade 1 default. No birth date or other personal data. |
 | Button practice | Unscored control familiarisation (tap, keypad, what Hint/Check/Hear/Pause do). |
-| Garden map | 14 locations with bloom levels, today's recommended mission, restored garden items, and a **List view** alternative. |
+| Garden map | "Next adventure" as the main action, the adventure worlds, today's practice mission, 14 locations with bloom levels, restored garden items, and a **List view** alternative. |
+| Adventure | 7 world cards (+ bonus), each world's winding map of flower buds with a level intro card, level results with 1–3 blooms, and a friend's party at the end of each world. |
 | Category screen | Explore / Practise / Apply per category with **Learn** (lesson) and **Practise** buttons; extensions marked. |
 | Garden check-up | Gentle starting assessment: 4 topics per session, adaptive follow-ups, max 3 questions per topic. |
 | Lesson | Worked example → guided try → fading help → new independent question → different (plain) format. |
 | Practice / daily mix / review / fluency | Targeted, 50/30/20 mixed, spaced review due screen, and fluency checks (only after reliable accuracy). |
-| Worksheets & tests | Plain worksheet practice on screen, printable sheet + separate answer/explanation page, generic practice test, and a mock using parent-confirmed rules. |
+| Worksheets & tests (grown-up area) | Plain worksheet practice on screen, printable sheet + separate answer/explanation page, generic practice test, and a mock using parent-confirmed rules. |
 | Results & restoration | On-your-own vs with-help counts, nectar earned, one suggestion; spend nectar on cosmetic garden items. |
 | Parent dashboard | Coverage, unassessed areas, independent vs assisted accuracy, tentative recurring errors with evidence, retention, plain-format performance, own-history response times, history, three next actions. No readiness percentage. |
 | Settings | Sound, narration, reduced motion, session length, mastery heuristic, review intervals, regrouping unlock, export / import (validated) / reset (confirmed). |
@@ -139,16 +171,16 @@ maths is always clear):
 
 Designed to reward effort, correcting mistakes and progress — with no lives, rankings, purchases, or streaks that can be lost.
 
-- **Named celebrations.** Every correct answer brings the bee in (pop, swoop or spin), with confetti, floating stars and a cheer using the child's nickname — "Great job, Mickey!", "Mickey, you did it!" and 10 more, never the same one twice in a row. Fixing a mistake gets its own cheer ("You fixed it, Mickey!"). The cheer is read aloud when narration is on. Set the name when creating the player, or later in *Hold for grown-ups → Settings & data → Nickname*.
+- **Named celebrations.** Every correct answer brings the bee in (pop, swoop or spin), with confetti, floating stars and a cheer using the child's nickname — "Great job, Mickey!", "Mickey, you did it!" and 10 more, never the same one twice in a row. Fixing a mistake gets its own cheer ("You fixed it, Mickey!"). The cheer is read aloud when narration is on. Set the name when creating the player, or later in *Grown-ups → Settings & data → Nickname*.
 - **Garden levels** (Seed → Sprout → Bud → Flower → Blossom → Busy Bee → Honey Keeper → Garden Star → Rainbow Gardener → Honey Master) come from lifetime nectar, so spending nectar never lowers them.
-- **Sticker book** with 21 stickers (first star, fixer, hint hero, learner, explorer, clock reader, sunny days…). New stickers and level-ups are revealed once, on the results screen. Practice days count up and never reset.
+- **Sticker book** with 30 stickers (first star, fixer, hint hero, learner, explorer, clock reader, sunny days…), including an Adventure page: the first bloom, one for each world's friend, and "Adventurer" for meeting all seven. New stickers and level-ups are revealed once, on the results screen. Practice days count up and never reset.
 - **Effects:** nectar drops fly to the top bar, results numbers count up with a sparkle rain, stickers flip in with a shine, level-ups get fireworks, screens fade in, buttons lift, and butterflies and a bee drift across the map. Learning scenes stay calm, and effects are removed when reduced motion is on.
 - **Buzz combo.** Answers right on the first try in a row show a 🔥 "3 in a row!" chip; at 3, 5, 8 and 12 the bee gives an extra-big cheer ("3 in a row, Mickey! You are on fire!"). A miss just quietly starts a new count, with no "you lost it" message.
 - **Daily quests.** Three small goals a day (always "finish a journey", plus two others such as "play in 2 places", "get 3 right on the first try", "use a hint and then solve it"). Finishing all three earns a golden sunflower 🌻. Quests are new each day, and missed days cost nothing.
 - **Daily surprise gift.** After the first finished journey of the day, a wrapped gift 🎁 waits to be tapped open, revealing one of 24 treasures for the treasure chest. There is one gift per day, and it cannot be bought or repeated.
 - **Friends move into the garden.** Finishing a journey in a world means the friend there (Bunny, Frog, Squirrel, Penguin, Hedgehog, Owl, the Queen Bee) is met. Friends appear in the sticker book and stroll around the pond in the 3D garden.
 - **Bee wardrobe.** Each new garden level unlocks a hat (🎀 🌸 🧢 🎩 👒 🕶️ 🎓 ⛑️ 👑). The chosen hat shows on the bee on the map, in the journeys and in the 3D garden.
-- **Healthy limits.** After 3 finished journeys in a day, the results screen suggests a rest and a snack. Nothing rewards speed, and nothing is lost for missing a day.
+- **Healthy limits.** After 3 finished journeys in a day, the results screen suggests a rest and a snack. When a grown-up sets a daily play limit, that limit replaces this rule and the calm session-end scene shows between levels (never in the middle of one). Nothing rewards speed, and nothing is lost for missing a day.
 - All of this is computed from recorded progress (`src/learning/gamification.ts`, `src/learning/fun.ts`, unit-tested), so refreshing cannot inflate it.
 
 ## The 14 categories

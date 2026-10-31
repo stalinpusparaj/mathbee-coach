@@ -13,7 +13,13 @@ import { AnswerPanel } from '../components/AnswerPanel';
 import { useT, useLang } from '../i18n/useT';
 import { t as translate } from '../i18n/i18n';
 import { speak, stopSpeaking, onSpeakingChange, narrationAvailable } from '../audio/speech';
-import { sfx } from '../audio/sfx';
+import { sfx, setSfxWorld } from '../audio/sfx';
+import { music } from '../audio/music';
+import { keepAwake, onShell } from '../app/shell';
+import { pushOverlay } from '../app/backNav';
+import { E2E_HOOKS } from '../app/platform';
+import { celebrateCorrect, installTapJuice, softWrong, type Point } from '../fx/juice';
+import { restDueAfterSession } from '../components/SessionEnd';
 import { Sprite } from '../components/art';
 import { pickSprite, spriteUrl } from '../assets/manifest';
 import { Modal } from '../components/ui';
@@ -22,10 +28,28 @@ import { displayName, pickCheer } from '../learning/gamification';
 import { COMBO_MILESTONES, comboAt, currentHat } from '../learning/fun';
 import { ComboChip } from '../components/Fun';
 import { JourneyTrack } from '../components/JourneyTrack';
-import { themeFor } from '../activities/journey';
+import { themeFor, type JourneyTheme } from '../activities/journey';
 import { getTemplate } from '../engine/registry';
 
 type Feedback = { kind: 'correct' } | { kind: 'wrong'; tag: ErrorTag | null } | null;
+
+/**
+ * How long a combo milestone keeps the journey golden (about 8 bars of music). Fixed: it
+ * fades on its own and is never cut short by a wrong answer.
+ */
+export const COMBO_GLOW_MS = 20_000;
+
+/**
+ * Close the run, then — only between runs, never mid-level — show the calm session-end scene
+ * when the parent's daily limit is reached. A finished adventure level still shows its blooms
+ * first (level-results); the next level then leads to the session-end scene.
+ */
+function closeRun() {
+  closeSession();
+  const s = store.get();
+  const p = s.app.profiles.find((x) => x.id === s.app.activeProfileId);
+  if (p && s.route.name !== 'level-results' && restDueAfterSession(p)) store.setRoute({ name: 'session-end' });
+}
 
 export function SessionScreen() {
   const profile = useProfile();
@@ -43,15 +67,62 @@ export function SessionScreen() {
   const [flyKey, setFlyKey] = useState<number | null>(null);
   const endCelebration = useCallback(() => setCelebrate(null), []);
   const timer = useRef(new ActiveTimer());
+  const [root, setRoot] = useState<HTMLDivElement | null>(null);
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLElement>(null);
+  const counterRef = useRef<HTMLSpanElement>(null);
+  const checkRef = useRef<HTMLButtonElement>(null);
+  /** where the correct-answer pollen comes from, and whether it was a combo milestone */
+  const juiceFrom = useRef<{ at: Point | null; big: boolean } | null>(null);
+  const [comboGlow, setComboGlow] = useState<number | null>(null);
 
   const slot = session && !session.finished ? session.plan[session.index] : null;
   const st = session ? session.slots[session.index] : undefined;
   const q = useMemo(() => (slot ? generateQuestion(slot.templateId, slot.seed, slot.format) : null), [slot?.templateId, slot?.seed, slot?.format]);
 
-  // session complete → results
+  // adventure levels play in their world; practice keeps its topic world
+  const theme: JourneyTheme | null = useMemo(
+    () => (session ? session.adventure?.theme ?? themeFor(session.plan.map((p) => getTemplate(p.templateId).category)) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [session?.id, session?.adventure?.theme, session?.plan.length],
+  );
+
+  // session complete → results (or the session-end scene once the daily limit is reached)
   useEffect(() => {
-    if (session?.finished) closeSession();
+    if (session?.finished) closeRun();
   }, [session?.finished]);
+
+  // keep the screen awake while playing; music and sounds take the world's key and tempo
+  useEffect(() => {
+    keepAwake(true);
+    return () => {
+      keepAwake(false);
+      music.setWorld(null);
+      setSfxWorld(null);
+    };
+  }, []);
+  useEffect(() => {
+    music.setWorld(theme);
+    setSfxWorld(theme);
+  }, [theme]);
+  // squash + soft tick + tap haptic on the child's buttons
+  useEffect(() => installTapJuice(root), [root]);
+  // a combo milestone glows for a fixed time, whatever happens next
+  useEffect(() => {
+    if (comboGlow === null) return;
+    const id = window.setTimeout(() => setComboGlow(null), COMBO_GLOW_MS);
+    return () => window.clearTimeout(id);
+  }, [comboGlow]);
+  // correct: hit-stop, stretch, pollen, nectar arc, counter bump; wrong: a gentle wobble only
+  useEffect(() => {
+    if (feedback?.kind === 'correct' && juiceFrom.current) {
+      const { at, big } = juiceFrom.current;
+      juiceFrom.current = null;
+      void celebrateCorrect({ card: feedbackRef.current, from: at, counter: counterRef.current, haptic: big ? 'celebrate' : 'success' });
+    } else if (feedback?.kind === 'wrong') {
+      softWrong(footerRef.current?.querySelector('.answer-display, .choice.on, .fields, .order-slots') ?? feedbackRef.current);
+    }
+  }, [feedback]);
 
   // reset per-question UI state and start the active-time clock
   useEffect(() => {
@@ -71,6 +142,13 @@ export function SessionScreen() {
     document.addEventListener('visibilitychange', vis);
     return () => document.removeEventListener('visibilitychange', vis);
   }, []);
+  // the Android app may pause without a visibilitychange: hold the clock on the shell's lifecycle too
+  useEffect(() => onShell('lifecycle', (m) => {
+    if (m.state === 'pause') timer.current.hold('hidden');
+    else if (m.state === 'resume') timer.current.release('hidden');
+  }), []);
+  // back (gesture, Escape) opens the pause sheet, and closes it again when it is open
+  useEffect(() => pushOverlay(() => setPaused((p) => !p)), []);
   useEffect(() => (paused ? timer.current.hold('pause') : timer.current.release('pause')), [paused]);
   useEffect(() => (feedback ? timer.current.hold('feedback') : timer.current.release('feedback')), [feedback]);
   useEffect(() => () => stopSpeaking(), []);
@@ -96,7 +174,7 @@ export function SessionScreen() {
 
   // automated browser tests (only with ?e2e in the URL) can read the expected answer
   useEffect(() => {
-    if (q && new URLSearchParams(location.search).has('e2e')) (window as unknown as { __mathbeeAnswer?: unknown }).__mathbeeAnswer = { answer: q.answer, scene: q.scene, templateId: q.templateId };
+    if (E2E_HOOKS && q && new URLSearchParams(location.search).has('e2e')) (window as unknown as { __mathbeeAnswer?: unknown }).__mathbeeAnswer = { answer: q.answer, scene: q.scene, templateId: q.templateId };
   }, [q]);
 
   // read the instruction aloud once when a question appears
@@ -118,6 +196,8 @@ export function SessionScreen() {
     const p = store.get().app.profiles.find((x) => x.id === profile!.id)!;
     const out = checkCurrent(p, response, timer.current.elapsed(), timer.current.interruptionCount());
     if (!out.duplicate) {
+      const r = checkRef.current?.getBoundingClientRect?.();
+      juiceFrom.current = out.correct ? { at: r ? { x: r.left + r.width / 2, y: r.top + r.height / 2 } : null, big: false } : null;
       update(() => out.profile);
       setFeedback(out.correct ? { kind: 'correct' } : { kind: 'wrong', tag: out.errorTag });
       if (out.correct) {
@@ -128,9 +208,15 @@ export function SessionScreen() {
         const key = milestone ? (name ? 'combo.cheer' : 'combo.cheerPlain') : pickCheer(seed, lastCheer.current, { named: !!name, fixed: (st?.checks ?? 0) > 0 });
         lastCheer.current = key;
         setCelebrate({ seed, key, n: combo, big: milestone });
+        if (milestone) {
+          juiceFrom.current = { at: juiceFrom.current?.at ?? null, big: true };
+          music.combo(combo);
+          sfx.sparkle();
+          setComboGlow(Date.now());
+        }
         if (profile?.settings.narration) speak(translate({ k: key, p: { name, n: combo } }, lang), lang);
       }
-      if (profile?.settings.sound) (out.correct ? sfx.good : sfx.tryAgain)();
+      if (profile?.settings.sound) (out.correct ? sfx.good : sfx.hmm)();
     }
     setBusy(false);
   };
@@ -142,6 +228,7 @@ export function SessionScreen() {
     const p = store.get().app.profiles.find((x) => x.id === profile!.id)!;
     const out = finishCurrent(p, todayStr(), Date.now(), { skipped });
     update(() => out.profile);
+    if (profile?.settings.sound) (out.nectarAwarded ? sfx.nectar : sfx.hop)();
     if (out.nectarAwarded) {
       setToast(t('ui.nectarPlus', { n: out.nectarAwarded }));
       setFlyKey(Date.now());
@@ -161,10 +248,9 @@ export function SessionScreen() {
 
   const showMe = () => update((p) => showSolution(p));
 
-  // keyboard: Enter checks (only when ready) or continues; Escape pauses
+  // keyboard: Enter checks (only when ready) or continues; Escape pauses through backNav (overlay above)
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPaused(true);
       if (e.key === 'Enter' && !paused) {
         const tag = (e.target as HTMLElement)?.tagName;
         if (tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT') return;
@@ -189,18 +275,19 @@ export function SessionScreen() {
   const shownHints = worked ? q.hints.slice(0, Math.min(workedStep, q.hints.length)) : q.hints.slice(0, hintLevel);
 
   return (
-    <div className={`screen session ${q.format}`} data-testid="session">
+    <div ref={setRoot} className={`screen session ${q.format}`} data-world={theme ?? undefined} data-testid="session">
       <header className="topbar">
         <button type="button" className="icon-btn" onClick={() => setPaused(true)} aria-label={t('ui.pause')} data-testid="pause">❚❚</button>
         <span className="progress-group">
-          <span className="progress-text" aria-label={t('ui.progress', { n: session.index + 1, total: progress })}>{session.index + 1} / {progress}</span>
+          <span ref={counterRef} className="progress-text" aria-label={t('ui.progress', { n: session.index + 1, total: progress })}>{session.index + 1} / {progress}</span>
           <ComboChip n={comboAt(session)} />
         </span>
-        <button type="button" className="icon-btn" onClick={narrate} disabled={!canNarrate} aria-label={t('ui.hearAgain')} title={canNarrate ? t('ui.hearAgain') : t('ui.noVoice')} data-testid="hear">🔊</button>
+        <button type="button" className="icon-btn hear-big" onClick={narrate} disabled={!canNarrate} aria-label={t('ui.hearAgain')} title={canNarrate ? t('ui.hearAgain') : t('ui.noVoice')} data-testid="hear">🔊</button>
       </header>
 
       <JourneyTrack
-        theme={themeFor(session.plan.map((p) => getTemplate(p.templateId).category))}
+        theme={theme ?? 'garden'}
+        combo={comboGlow}
         index={session.index}
         total={progress}
         marks={session.plan.map((_, i) => {
@@ -236,6 +323,7 @@ export function SessionScreen() {
             reveal={reveal}
             bw={q.format === 'plain'}
             onFieldFocus={setActiveField}
+            skin={slot.skin}
           />
         )}
         {shownHints.length > 0 && (
@@ -255,12 +343,12 @@ export function SessionScreen() {
           )}
         </footer>
       ) : (
-        <footer className="controls">
+        <footer className="controls" ref={footerRef}>
           {!solved && !sawSolution && (
             <AnswerPanel answer={q.answer} response={response} onChange={onResponse} disabled={locked} activeField={activeField} onActiveField={setActiveField} />
           )}
           {feedback?.kind === 'correct' || sawSolution ? (
-            <div className={`feedback ${sawSolution && !solved ? 'shown' : 'good'}`} role="status" data-testid="feedback">
+            <div ref={feedbackRef} className={`feedback ${sawSolution && !solved ? 'shown' : 'good'}`} role="status" data-testid="feedback">
               <Sprite id={sawSolution && !solved ? pickSprite('bee_point', 'bee') : pickSprite('bee_celebrate', 'bee')} size={52} decorative />
               <div>
                 <p className="fb-title">{sawSolution && !solved ? t('ui.hereIsHow') : t(`fb.correct.${(session.index % 4) + 1}`)}</p>
@@ -268,7 +356,7 @@ export function SessionScreen() {
               </div>
             </div>
           ) : feedback?.kind === 'wrong' ? (
-            <div className="feedback wrong" role="status" data-testid="feedback">
+            <div ref={feedbackRef} className="feedback wrong" role="status" data-testid="feedback">
               <Sprite id={pickSprite('bee_think', 'bee')} size={52} decorative />
               <div>
                 <p className="fb-title">{t(wrongKey)}</p>
@@ -281,7 +369,7 @@ export function SessionScreen() {
               <>
                 <button type="button" className="btn secondary" onClick={hint} disabled={locked || (st?.hints ?? 0) >= q.hints.length} data-testid="hint">💡 {t('ui.hint')}</button>
                 {wrongCount >= 2 && <button type="button" className="btn secondary" onClick={showMe} data-testid="show-me">{t('ui.showMe')}</button>}
-                <button type="button" className="btn primary big" onClick={check} disabled={!complete || busy || feedback?.kind === 'wrong'} data-testid="check">✔ {t('ui.check')}</button>
+                <button ref={checkRef} type="button" className="btn primary big" onClick={check} disabled={!complete || busy || feedback?.kind === 'wrong'} data-juice="quiet" data-testid="check">✔ {t('ui.check')}</button>
                 {feedback?.kind === 'wrong' && <button type="button" className="btn primary" onClick={() => setFeedback(null)} data-testid="try-again">{t('ui.tryAgain')}</button>}
               </>
             )}
@@ -300,7 +388,7 @@ export function SessionScreen() {
           <div className="stack">
             <button type="button" className="btn primary big" onClick={() => setPaused(false)} data-testid="resume">{t('ui.keepGoing')}</button>
             {!solved && !sawSolution && !worked && <button type="button" className="btn secondary" onClick={() => { setPaused(false); next(true); }} data-testid="skip">{t('ui.skipQuestion')}</button>}
-            <button type="button" className="btn secondary" onClick={() => { setPaused(false); stopSpeaking(); closeSession(); }} data-testid="stop">{t('ui.stopForNow')}</button>
+            <button type="button" className="btn secondary" onClick={() => { setPaused(false); stopSpeaking(); closeRun(); }} data-testid="stop">{t('ui.stopForNow')}</button>
           </div>
         </Modal>
       )}

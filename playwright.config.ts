@@ -10,7 +10,7 @@ export default defineConfig({
   reporter: [['list']],
   use: {
     baseURL: 'http://localhost:4173',
-    channel: process.env.PW_CHANNEL ?? 'chrome',
+    channel: process.env.PW_CHANNEL ?? 'chromium', // Playwright's bundled browser; set PW_CHANNEL=chrome to use an installed Chrome
     viewport: { width: 1280, height: 900 },
     trace: 'retain-on-failure',
   },

@@ -1,1 +1,209 @@
-/* parent feature styles (owned by its work package) */
+/* parent feature styles (owned by WP6): bundled fonts, parent gate, story intro, parent area */
+
+/*
+ * Bundled fonts (SIL OFL, from @fontsource). Only the subsets the app needs: Latin for Nunito and
+ * Baloo 2, Tamil for Noto Sans Tamil. Vite copies the woff2 files into the build and rewrites the
+ * URLs against the build's base, so they load offline under /web/ in the Android app too.
+ */
+@import '@fontsource/nunito/latin-400.css';
+@import '@fontsource/nunito/latin-700.css';
+@import '@fontsource/nunito/latin-800.css';
+@import '@fontsource/nunito/latin-900.css';
+@import '@fontsource/baloo-2/latin-600.css';
+@import '@fontsource/baloo-2/latin-700.css';
+@import '@fontsource/noto-sans-tamil/tamil-400.css';
+@import '@fontsource/noto-sans-tamil/tamil-700.css';
+
+:root {
+  --gate-key: 64px;
+}
+
+/* storybook headings */
+.logo, .intro-story h1, .gate-title { font-family: 'Baloo 2', var(--font); }
+
+/* ---------- parent gate ---------- */
+.parent-gate.screen { display: grid; place-items: center; min-height: 100dvh; padding: 16px; }
+.parent-gate.as-overlay { width: min(440px, 100%); max-height: 100%; overflow-y: auto; }
+.gate-card {
+  background: var(--white);
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: var(--shadow);
+  padding: 18px;
+  width: min(440px, 100%);
+  display: grid;
+  gap: 10px;
+  text-align: center;
+}
+.gate-title { display: grid; gap: 2px; margin: 0; font-size: 1.5rem; }
+.gate-other { display: block; font-size: 0.85em; font-weight: 700; color: var(--ink-soft); }
+.gate-child, .gate-ask { margin: 0; }
+.gate-ask { font-weight: 700; }
+.gate-question {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 2rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+.gate-display {
+  min-width: 4.2ch;
+  padding: 2px 12px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: var(--cream);
+}
+.gate-status { margin: 0; min-height: 1.45em; font-weight: 700; color: var(--coral-dark); }
+.gate-status.empty { visibility: hidden; }
+.gate-keypad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(var(--gate-key), 1fr));
+  gap: 8px;
+  max-width: 300px;
+  margin: 0 auto;
+  width: 100%;
+}
+.gate-key {
+  min-height: var(--gate-key);
+  min-width: var(--gate-key);
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: var(--white);
+  font-size: 1.6rem;
+  font-weight: 900;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--ink);
+  touch-action: manipulation;
+  transition: transform 80ms ease;
+}
+.gate-key.fn { background: var(--cream-2); font-size: 1.3rem; }
+.gate-key:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+.gate-key:disabled { opacity: 0.45; cursor: default; }
+.gate-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; }
+.gate-actions .btn { min-height: 52px; flex: 1 1 140px; }
+
+/* the entry button stays quiet: grown-ups find it, it does not invite a child to play with it */
+.parent-entry { min-height: 48px; }
+
+/* ---------- story intro ---------- */
+.intro-story {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 10px;
+  background:
+    linear-gradient(rgba(255, 248, 232, 0.6), rgba(255, 248, 232, 0.92)),
+    var(--intro-bg, none) center / cover no-repeat,
+    var(--cream);
+}
+.intro-story[data-scene='storm'] {
+  background:
+    linear-gradient(rgba(70, 86, 120, 0.55), rgba(255, 248, 232, 0.9)),
+    var(--intro-bg, none) center / cover no-repeat,
+    var(--sky);
+}
+.intro-skip { min-height: 56px; }
+.intro-skip-space { display: inline-block; min-width: 56px; }
+.intro-panel { display: grid; align-content: center; justify-items: center; gap: 16px; padding: 8px 0; animation: intro-in 400ms ease-out both; }
+.intro-art {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: 520px;
+  min-height: 130px;
+  padding: 16px;
+  border-radius: 28px;
+  background: rgba(255, 253, 248, 0.75);
+  border: 3px solid var(--ink);
+}
+.intro-sprite { display: inline-block; animation: intro-bob 2.4s ease-in-out infinite; animation-delay: calc(var(--k) * 180ms); }
+.scene-storm .intro-sprite:not(:first-child) { animation: intro-blow 2.8s ease-in-out infinite; animation-delay: calc(var(--k) * 240ms); }
+.scene-bloom .intro-sprite { animation: intro-grow 900ms ease-out both; animation-delay: calc(var(--k) * 160ms); }
+.intro-wind {
+  position: absolute;
+  inset: 12px;
+  border-radius: 24px;
+  background: repeating-linear-gradient(170deg, transparent 0 22px, rgba(255, 255, 255, 0.55) 22px 26px);
+  opacity: 0.6;
+  animation: intro-wind 1.6s linear infinite;
+  pointer-events: none;
+}
+.intro-text {
+  margin: 0;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 1.35rem;
+  font-weight: 800;
+  background: var(--white);
+  border: 3px solid var(--ink);
+  border-radius: 20px;
+  padding: 12px 18px;
+}
+.intro-dots { display: flex; justify-content: center; gap: 8px; }
+.intro-dots span { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--ink); background: var(--white); }
+.intro-dots span.on { background: var(--honey); }
+.intro-controls { display: flex; justify-content: center; align-items: center; gap: 14px; padding-bottom: 12px; }
+.intro-controls .icon-btn { min-width: 56px; min-height: 56px; }
+.intro-controls .btn.big { min-width: 180px; min-height: 60px; }
+
+@keyframes intro-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes intro-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes intro-blow { 0%, 100% { transform: translateX(0) rotate(0); } 50% { transform: translateX(14px) rotate(8deg); } }
+@keyframes intro-grow { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+@keyframes intro-wind { from { background-position: 0 0; } to { background-position: 120px 0; } }
+
+/* reduced motion: a short crossfade only, no movement */
+@keyframes intro-fade { from { opacity: 0; } to { opacity: 1; } }
+html.reduce-motion .intro-sprite, html.reduce-motion .intro-wind, html.reduce-motion .gate-key { animation: none !important; transition: none !important; }
+html.reduce-motion .intro-panel { animation: intro-fade 150ms linear both !important; }
+html.reduce-motion .gate-key:active:not(:disabled) { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html:not(.full-motion) .intro-sprite, html:not(.full-motion) .intro-wind { animation: none; }
+  html:not(.full-motion) .intro-panel { animation: intro-fade 150ms linear both; }
+  html:not(.full-motion) .gate-key { transition: none; }
+  html:not(.full-motion) .gate-key:active:not(:disabled) { transform: none; }
+}
+
+/* ---------- parent area ---------- */
+.home-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.home-cols h3 { margin: 0.2em 0; font-size: 1.05rem; }
+.home-cols ul { margin: 0; padding-left: 1.2em; }
+.home-cols li { margin: 4px 0; }
+.voice-row { display: grid; gap: 4px; }
+.settings .btn, .parent nav .btn { min-height: 48px; }
+
+.privacy-backdrop { padding: 12px; }
+.privacy-sheet {
+  background: var(--white);
+  border: 4px solid var(--ink);
+  border-radius: 24px;
+  width: min(760px, 100%);
+  height: min(90dvh, 100%);
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 8px;
+  padding: 12px;
+}
+.privacy-sheet header h2 { margin: 0; }
+.privacy-frame { width: 100%; height: 100%; border: 2px solid var(--cream-2); border-radius: 14px; background: #fff; }
+
+@media (max-width: 380px) {
+  :root { --gate-key: 58px; }
+  .gate-question { font-size: 1.7rem; }
+  .intro-text { font-size: 1.2rem; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .gate-card { grid-template-columns: 1fr 1fr; align-items: center; }
+  .gate-card > :not(.gate-keypad) { grid-column: 1; }
+  .gate-keypad { grid-column: 2; grid-row: 1 / span 7; }
+  :root { --gate-key: 52px; }
+}
+@media print {
+  .parent nav, .home-ideas .small.muted { display: none; }
+}

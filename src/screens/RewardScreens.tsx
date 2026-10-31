@@ -27,6 +27,11 @@ export function LevelBadge({ profile, compact }: { profile: Profile; compact?: b
   );
 }
 
+/** Stickers earned on the adventure path (first bloom, each world's friend, all friends met). */
+export function isAdventureSticker(id: string): boolean {
+  return id === 'first-star' || id === 'adventurer' || id.startsWith('world-friend-');
+}
+
 export function StickerBookScreen() {
   const t = useT();
   const profile = useProfile();
@@ -42,19 +47,26 @@ export function StickerBookScreen() {
       <LevelBadge profile={profile} />
       <p className="lead center">{t('ui.stickerCount', { n: earned.size, total: STICKERS.length })} · {t('ui.gardenVisits', { n: gardenVisits(profile) })}</p>
       <Collections profile={profile} />
-      <h2 className="center">{t('ui.stickers')}</h2>
-      <div className="sticker-grid">
-        {STICKERS.map((s, i) => {
-          const on = earned.has(s.id);
-          return (
-            <div key={s.id} className={`sticker ${on ? 'on' : 'off'}`} style={{ animationDelay: `${i * 30}ms` }} data-testid={`sticker-${s.id}`}>
-              <span className="sticker-face" aria-hidden>{on ? s.icon : '?'}</span>
-              <strong>{t(`sticker.${s.id}`)}</strong>
-              <small>{on ? t(`stickerDesc.${s.id}`) : t('ui.locked')}</small>
-            </div>
-          );
-        })}
-      </div>
+      {[
+        { id: 'garden', title: t('ui.stickers'), list: STICKERS.filter((s) => !isAdventureSticker(s.id)) },
+        { id: 'adventure', title: t('ui.adventure'), list: STICKERS.filter((s) => isAdventureSticker(s.id)) },
+      ].map((group) => (
+        <section key={group.id} className="sticker-group" data-testid={`stickers-${group.id}`}>
+          <h2 className="center">{group.title}</h2>
+          <div className="sticker-grid">
+            {group.list.map((s, i) => {
+              const on = earned.has(s.id);
+              return (
+                <div key={s.id} className={`sticker ${on ? 'on' : 'off'}`} style={{ animationDelay: `${i * 30}ms` }} data-testid={`sticker-${s.id}`}>
+                  <span className="sticker-face" aria-hidden>{on ? s.icon : '?'}</span>
+                  <strong>{t(`sticker.${s.id}`)}</strong>
+                  <small>{on ? t(`stickerDesc.${s.id}`) : t('ui.locked')}</small>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ))}
     </div>
   );
 }

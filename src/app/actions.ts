@@ -8,6 +8,11 @@ import { endSession, startSession } from '../learning/session';
 import { createMock, scoreMock } from '../mock/mockEngine';
 import { GARDEN_ITEMS } from '../curriculum/curriculum';
 import { newProfile } from '../persistence/schema';
+import { evaluateAll } from '../learning/mastery';
+import { sessionEndDue } from '../learning/fun';
+import { LEVEL_BY_ID, WORLD_BY_ID } from '../adventure/levels';
+import { awardStarBonus, isLevelUnlocked, recordLevelResult, starsOf } from '../adventure/progress';
+import { planAdventureLevel } from '../adventure/planner';
 
 function active(): Profile | null {
   const s = store.get();
@@ -19,7 +24,8 @@ export function createProfile(avatar: string, nickname: string, language: 'en' |
   const p = newProfile(id, avatar, nickname.trim(), language, todayStr());
   const app = store.get().app;
   store.setApp({ ...app, profiles: [...app.profiles, p], activeProfileId: id });
-  store.setRoute({ name: 'controls' });
+  // a new player hears the story first; the intro then leads to the controls practice
+  store.setRoute({ name: 'intro' });
 }
 
 export function selectProfile(id: string) {
@@ -35,6 +41,11 @@ export interface LaunchOpts { category?: CategoryId; stage?: Stage; subskill?: s
 export function launch(mode: Mode, opts: LaunchOpts = {}): boolean {
   const p = active();
   if (!p) return false;
+  // the parent's daily limit is checked between runs only (the check-up and grown-up worksheets are exempt)
+  if (mode !== 'assessment' && mode !== 'worksheet' && sessionEndDue(p, todayStr())) {
+    store.setRoute({ name: 'session-end' });
+    return false;
+  }
   const rng = createRng(freshSeed());
   const today = todayStr();
   const n = questionCount(p.settings.sessionMinutes);
@@ -58,11 +69,45 @@ export function launch(mode: Mode, opts: LaunchOpts = {}): boolean {
   return true;
 }
 
+/**
+ * Start an adventure level. Returns false when the level is unknown or still a closed bud,
+ * or when the parent's daily limit is reached (checked between levels only — then the
+ * calm session-end scene shows instead).
+ */
+export function launchLevel(levelId: string): boolean {
+  const p = active();
+  const level = LEVEL_BY_ID[levelId];
+  if (!p || !level) return false;
+  const today = todayStr();
+  if (sessionEndDue(p, today)) {
+    store.setRoute({ name: 'session-end' });
+    return false;
+  }
+  if (!isLevelUnlocked(level, p, evaluateAll(p.attempts, p.settings.mastery))) return false;
+  const plan = planAdventureLevel(createRng(freshSeed()), p, level, today);
+  if (!plan.length) return false;
+  const adventure = { levelId, world: level.world, theme: WORLD_BY_ID[level.world].theme };
+  store.updateProfile((pr) => startSession(pr, newId('s'), 'adventure', plan, Date.now(), { adventure }));
+  store.setRoute({ name: 'session' });
+  return true;
+}
+
 /** Finish or stop the running session (stopping early has no penalty). */
 export function closeSession() {
   const p = active();
   if (!p?.activeSession) return;
-  const { profile, record } = endSession(p, todayStr(), Date.now());
+  const adv = p.activeSession.adventure;
+  const today = todayStr();
+  const { profile, record } = endSession(p, today, Date.now());
+  if (adv && record) {
+    // adventure: keep the best result, pay each newly reached star once, show the blooms
+    const prevStars = starsOf(p, adv.levelId);
+    const { profile: withBonus, bonus } = awardStarBonus(recordLevelResult(profile, adv.levelId, record.id, today), adv.levelId);
+    store.updateProfile(() => withBonus);
+    if (record.completed) store.setRoute({ name: 'level-results', levelId: adv.levelId, record, newNectar: record.nectar + bonus, prevStars });
+    else store.setRoute({ name: 'adventure-world', world: adv.world });
+    return;
+  }
   store.updateProfile(() => profile);
   if (record) store.setRoute({ name: 'results', record, newNectar: record.nectar });
   else store.setRoute({ name: 'map' });

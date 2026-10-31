@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { store } from '../app/store';
 import { useT } from '../i18n/useT';
 import { Sprite } from './art';
@@ -10,6 +10,11 @@ import {
   suggestRest, treasureCounts, treasureFor,
 } from '../learning/fun';
 import type { Profile } from '../learning/types';
+import { haptic } from '../fx/juice';
+import { sfx } from '../audio/sfx';
+
+/** The combo chip shows for this long after each new combo, then fades by itself. */
+export const COMBO_CHIP_MS = 4000;
 
 /** The bee sprite wearing its chosen hat. */
 export function HatBee({ hat, size, className = '' }: { hat: string | null; size: number; className?: string }) {
@@ -27,11 +32,24 @@ export function FriendFace({ theme, size }: { theme: (typeof FRIEND_ORDER)[numbe
   return goal === 'svg:hive' ? <HatBee hat="👑" size={size} /> : <Sprite id={goal} size={size} decorative />;
 }
 
-/** Buzz combo chip in the session top bar (appears from 2 in a row, disappears silently). */
+/**
+ * Buzz combo chip in the session top bar. It appears when a combo of 2 or more grows and
+ * fades on its own after COMBO_CHIP_MS — a wrong answer never makes it vanish, so the chip
+ * can never become a "you lost your streak" signal.
+ */
 export function ComboChip({ n }: { n: number }) {
   const t = useT();
-  if (n < 2) return null;
-  return <span key={n} className={`combo-chip ${n >= 5 ? 'hot' : ''}`} role="status" data-testid="combo">{t('combo.chip', { n })}</span>;
+  const [shown, setShown] = useState<number | null>(n >= 2 ? n : null);
+  useEffect(() => {
+    if (n >= 2) setShown(n); // only a growing combo is shown; a reset is simply not mentioned
+  }, [n]);
+  useEffect(() => {
+    if (shown === null) return;
+    const id = window.setTimeout(() => setShown(null), COMBO_CHIP_MS);
+    return () => window.clearTimeout(id);
+  }, [shown]);
+  if (shown === null) return null;
+  return <span key={shown} className={`combo-chip ${shown >= 5 ? 'hot' : ''}`} role="status" data-testid="combo">{t('combo.chip', { n: shown })}</span>;
 }
 
 /** Today's three quests with progress; all three done = a golden sunflower. */
@@ -69,15 +87,19 @@ export function GiftBox({ profile }: { profile: Profile }) {
     const id = treasureFor(profile.id, today);
     store.updateProfile((p) => openGift(p, today));
     setOpened(id);
+    sfx.giftPop();
+    haptic('success');
   };
   return (
     <section className={`gift ${opened ? 'opened' : ''}`} data-testid="gift">
       {opened ? (
         <>
           <span className="gift-rays" aria-hidden />
+          <span className="gift-lid" aria-hidden>🎀</span>
           <span className="treasure-big" aria-hidden>{opened}</span>
           <p role="status" data-testid="gift-found"><strong>{t('gift.found', { t: opened })}</strong></p>
-          <p className="small">{t('gift.tomorrow')}</p>
+          {/* no preview of, or countdown to, another gift (§A3 item 13) */}
+          <p className="small">{t('juice.gift.keep')}</p>
         </>
       ) : (
         <>

@@ -17,7 +17,9 @@
     "art:generate": "node tools/generate_art.mjs",
     "art:process": "python3 tools/process_generated.py",
     "art:prompts": "node tools/export_prompts.mjs",
-    "build:artifact": "tsc -p tsconfig.json --noEmit && vite build --mode artifact && node tools/make_artifact.mjs"
+    "build:artifact": "tsc -p tsconfig.json --noEmit && vite build --mode artifact && node tools/make_artifact.mjs",
+    "build:android": "tsc -p tsconfig.json --noEmit && vite build --mode android",
+    "android:debug": "npm run build:android && cd android && ./gradlew :app:assembleDebug"
   },
   "dependencies": {
     "@fontsource/baloo-2": "^5.3.0",

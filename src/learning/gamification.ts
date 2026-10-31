@@ -2,6 +2,7 @@ import type { CategoryId } from '../engine/types';
 import type { Profile } from './types';
 import { GARDEN_ITEMS } from '../curriculum/curriculum';
 import { isIndependentEvidence } from './mastery';
+import { STORY_WORLDS, friendLevelOf } from '../adventure/levels';
 
 /**
  * Gamification that only ever goes up: garden levels from lifetime nectar and a sticker
@@ -49,6 +50,9 @@ export interface Sticker { id: string; icon: string; earned: (p: Profile) => boo
 const solvedOwn = (p: Profile) => p.attempts.filter((a) => isIndependentEvidence(a) && a.firstCorrect);
 const inCat = (p: Profile, c: CategoryId) => solvedOwn(p).filter((a) => a.category === c).length;
 const days = (p: Profile) => new Set(p.attempts.map((a) => a.date)).size;
+/** An adventure level is finished (≥ 1 star = bloomed). Stars beyond the first never earn stickers. */
+const bloomed = (p: Profile, levelId: string | undefined) => !!levelId && (p.adventure?.levels[levelId]?.stars ?? 0) >= 1;
+const ICON_FRIEND: Record<string, string> = { w1: '🐰', w2: '🐸', w3: '🐿️', w4: '🐧', w5: '🦔', w6: '🦉', w7: '🐝' };
 
 export const STICKERS: Sticker[] = [
   { id: 'first-correct', icon: '🌟', earned: (p) => solvedOwn(p).length >= 1 },
@@ -72,6 +76,10 @@ export const STICKERS: Sticker[] = [
   { id: 'gardener', icon: '🌳', earned: (p) => p.garden.length >= 3 },
   { id: 'three-days', icon: '☀️', earned: (p) => days(p) >= 3 },
   { id: 'seven-days', icon: '🌈', earned: (p) => days(p) >= 7 },
+  // adventure: finishing earns these — never a perfect score
+  { id: 'first-star', icon: '🌠', earned: (p) => Object.values(p.adventure?.levels ?? {}).some((l) => l.stars >= 1) },
+  ...STORY_WORLDS.map((w) => ({ id: `world-friend-${w}`, icon: ICON_FRIEND[w], earned: (p: Profile) => bloomed(p, friendLevelOf(w)?.id) })),
+  { id: 'adventurer', icon: '🎆', earned: (p) => STORY_WORLDS.every((w) => bloomed(p, friendLevelOf(w)?.id)) },
 ];
 
 export function earnedStickers(p: Profile): string[] {

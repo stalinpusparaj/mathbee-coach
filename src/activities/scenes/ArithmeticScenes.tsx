@@ -1,5 +1,6 @@
-import type { SceneProps } from '../sceneTypes';
 import { arr, num, SOLUTION } from '../sceneTypes';
+import { activeSkin, type SkinnedSceneProps } from './skins';
+import { LilyLine } from './LilyPads';
 import { Sprite } from '../../components/art';
 import { TenFrame, BaseTen, NumberLine } from '../../components/math-models';
 import { useDragOrTap } from '../../components/dnd';
@@ -9,8 +10,9 @@ import { useT } from '../../i18n/useT';
  * C08 addition: objects → grouped representation → equation.
  * Objects: pour two baskets together. Ten-frame: add counters one at a time.
  * Number line: hop forward. Base ten: put tens and ones together, trade 10 ones for a ten.
+ * Lily-Pad Hop skin (number line only): the line becomes pads on water; same hop button.
  */
-export function AddScene({ q, work, setWork, interactive, reveal, bw }: SceneProps) {
+export function AddScene({ q, work, setWork, interactive, reveal, bw, skin }: SkinnedSceneProps) {
   const t = useT();
   if (q.scene.type !== 'add') return null;
   const { a, b, item, representation } = q.scene;
@@ -62,9 +64,12 @@ export function AddScene({ q, work, setWork, interactive, reveal, bw }: ScenePro
   if (representation === 'numberline') {
     const hops = solved ? b : num(work.hops);
     const to = Math.max(10, Math.ceil((a + b) / 5) * 5);
+    const lily = bw ? null : activeSkin(skin, q);
     return (
-      <div className={`scene add-line ${bw ? 'bw' : ''}`}>
-        <NumberLine from={0} to={to} start={a} hops={b} dir={1} showHops={hops} label={t('ui.numberLine')} />
+      <div className={`scene add-line ${bw ? 'bw' : ''} ${lily ? 'skin-lily' : ''}`} data-skin={lily ? 'lily-hop' : undefined}>
+        {lily?.family === 'lily-hop'
+          ? <LilyLine from={0} to={to} start={a} hops={b} dir={1} showHops={hops} pad={lily.pad} label={t('skin.padLine')} />
+          : <NumberLine from={0} to={to} start={a} hops={b} dir={1} showHops={hops} label={t('ui.numberLine')} />}
         {interactive && (
           <div className="scene-tools center">
             <button type="button" className="btn small" onClick={() => setWork({ ...work, hops: Math.min(b, hops + 1) })} disabled={hops >= b} data-testid="hop">{t('ui.hopForward')}</button>
@@ -127,8 +132,9 @@ function Group({ n, item, split, numbered }: { n: number; item: string; split?: 
 /**
  * C09 subtraction: move penguins from the island onto the boat; the removed group stays
  * visible in the boat. A penguin can only be moved once. Base ten: cross out, break a ten.
+ * Lily-Pad Hop skin (number line only): ice floes or pads; the bee hops back one per tap.
  */
-export function SubScene({ q, work, setWork, interactive, reveal, bw }: SceneProps) {
+export function SubScene({ q, work, setWork, interactive, reveal, bw, skin }: SkinnedSceneProps) {
   const t = useT();
   const moved = arr<string>(work.moved);
   const s0 = q.scene.type === 'subtract' ? q.scene : null;
@@ -177,9 +183,12 @@ export function SubScene({ q, work, setWork, interactive, reveal, bw }: ScenePro
   if (representation === 'numberline') {
     const hops = solved ? remove : num(work.hops);
     const to = Math.max(10, Math.ceil(start / 5) * 5);
+    const lily = bw ? null : activeSkin(skin, q);
     return (
-      <div className={`scene sub-line ${bw ? 'bw' : ''}`}>
-        <NumberLine from={0} to={to} start={start} hops={remove} dir={-1} showHops={hops} label={t('ui.numberLine')} />
+      <div className={`scene sub-line ${bw ? 'bw' : ''} ${lily ? 'skin-lily' : ''}`} data-skin={lily ? 'lily-hop' : undefined}>
+        {lily?.family === 'lily-hop'
+          ? <LilyLine from={0} to={to} start={start} hops={remove} dir={-1} showHops={hops} pad={lily.pad} label={t('skin.padLine')} />
+          : <NumberLine from={0} to={to} start={start} hops={remove} dir={-1} showHops={hops} label={t('ui.numberLine')} />}
         {interactive && (
           <div className="scene-tools center">
             <button type="button" className="btn small" onClick={() => setWork({ ...work, hops: Math.min(remove, hops + 1) })} disabled={hops >= remove} data-testid="hop">{t('ui.hopBack')}</button>

@@ -1,1 +1,45 @@
-/* shell feature styles (owned by its work package) */
+/* Web platform layer: Android shell (html.in-android), printing through the shell, Bye-bye sheet. */
+
+/* inside the app: no tap flashes, no rubber-band scroll, no text selection or long-press callouts */
+html.in-android {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+html.in-android body {
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+/* typing still works (parent gate keypad, names, numbers) */
+html.in-android input,
+html.in-android textarea {
+  -webkit-user-select: text;
+  user-select: text;
+}
+/* Play delivers updates; the web "Update now" banner never shows in the app */
+html.in-android [data-update-banner],
+html.in-android .update-banner { display: none !important; }
+
+/* the WebView print adapter may ignore @media print, so the shell sets html.printing meanwhile */
+html.printing .no-print,
+html.printing .storage-warning { display: none !important; }
+
+/* "Bye-bye" sheet (rendered by the app; back on the garden map) */
+.bye-sheet {
+  text-align: center;
+  animation: bye-sheet-in 280ms ease-out both;
+}
+.bye-sheet .bye-bee { width: 96px; height: 96px; margin: 0 auto 8px; display: block; }
+.bye-sheet .row { justify-content: center; gap: 12px; flex-wrap: wrap; }
+/* child-facing buttons: big enough for small fingers */
+.bye-sheet .btn { min-height: 56px; min-width: 56px; padding-inline: 20px; }
+@keyframes bye-sheet-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+html.reduce-motion .bye-sheet { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  html:not(.full-motion) .bye-sheet { animation: none; }
+}

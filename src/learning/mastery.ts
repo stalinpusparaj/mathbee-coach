@@ -28,7 +28,26 @@ export interface SkillEvidence {
 
 /** Evidence counts only an attempt that could show independent knowledge. */
 export function isIndependentEvidence(a: Attempt): boolean {
-  return a.independent && !a.skipped && !a.sawSolution && a.phase !== 'worked' && a.phase !== 'guided';
+  return a.independent && !a.skipped && !a.sawSolution && a.phase !== 'worked' && a.phase !== 'guided' && a.countsAsEvidence !== false;
+}
+
+/**
+ * Adventure replays must not farm evidence: at most this many adventure attempts per
+ * subskill per day count as mastery evidence. Later ones are marked `countsAsEvidence:false`
+ * when recorded (they still earn petals, quests and stickers from their own flags).
+ */
+export const ADVENTURE_EVIDENCE_CAP = 8;
+
+/** Whether a new adventure attempt on this subskill and day still counts as evidence. */
+export function withinAdventureCap(attempts: Attempt[], subskill: string, date: DateStr): boolean {
+  let n = 0;
+  for (const a of attempts) if (a.mode === 'adventure' && a.date === date && a.subskill === subskill && a.countsAsEvidence !== false) n++;
+  return n < ADVENTURE_EVIDENCE_CAP;
+}
+
+/** Distinct-session key: all adventure play on one day is one session, however many levels. */
+export function evidenceSessionKey(a: Attempt): string {
+  return a.mode === 'adventure' ? `adv:${a.date}` : a.sessionId;
 }
 
 /** A retention check: independent work on a later day than the previous evidence, not a lesson retry. */
@@ -56,12 +75,13 @@ export function transferChecks(atts: Attempt[]) {
 }
 
 export function evaluateSkill(subskill: string, all: Attempt[], cfg: Settings['mastery']): SkillEvidence {
-  const atts = all.filter((a) => a.subskill === subskill).sort((x, y) => x.ts - y.ts);
+  // over-cap adventure attempts are removed entirely: not evidence, not "supported", not retention or transfer
+  const atts = all.filter((a) => a.subskill === subskill && a.countsAsEvidence !== false).sort((x, y) => x.ts - y.ts);
   const indep = atts.filter(isIndependentEvidence);
   const window = indep.slice(-cfg.window).map((a) => a.firstCorrect);
   const windowCorrect = window.filter(Boolean).length;
   const supported = atts.filter((a) => !isIndependentEvidence(a) && a.finalCorrect && !a.skipped).length;
-  const sessions = new Set(indep.filter((a) => a.firstCorrect).map((a) => a.sessionId)).size;
+  const sessions = new Set(indep.filter((a) => a.firstCorrect).map(evidenceSessionKey)).size;
   const templates = new Set(indep.filter((a) => a.firstCorrect).map((a) => a.templateId)).size;
   const retention = retentionChecks(atts);
   const transfer = transferChecks(atts);

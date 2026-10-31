@@ -26,6 +26,11 @@ export function VisualView({ v, size = 44 }: { v: Visual; size?: number }) {
   }
 }
 
+/**
+ * The answer controls under the question. Tap feel (squash, a soft tick pitched by
+ * `data-pitch`, a tap haptic) comes from the session's `installTapJuice`; the panel only
+ * marks each button's pitch. Its sticky placement is styled by `footer.controls` (app.css).
+ */
 export function AnswerPanel({ answer, response, onChange, disabled, activeField, onActiveField }: Props) {
   switch (answer.kind) {
     case 'number':
@@ -79,10 +84,10 @@ export function Keypad({ onDigit, onBack, onClear, disabled }: { onDigit: (d: nu
   return (
     <div className="keypad" role="group" aria-label={t('ui.keypad')}>
       {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
-        <button key={d} type="button" className="key" onClick={() => onDigit(d)} disabled={disabled} data-testid={`key-${d}`}>{d}</button>
+        <button key={d} type="button" className="key" onClick={() => onDigit(d)} disabled={disabled} data-pitch={d} data-testid={`key-${d}`}>{d}</button>
       ))}
       <button type="button" className="key alt" onClick={onClear} disabled={disabled} aria-label={t('ui.clear')}>C</button>
-      <button type="button" className="key" onClick={() => onDigit(0)} disabled={disabled} data-testid="key-0">0</button>
+      <button type="button" className="key" onClick={() => onDigit(0)} disabled={disabled} data-pitch={0} data-testid="key-0">0</button>
       <button type="button" className="key alt" onClick={onBack} disabled={disabled} aria-label={t('ui.backspace')}>⌫</button>
     </div>
   );
@@ -105,10 +110,11 @@ function ChoiceAnswer({ options, value, onChange, disabled }: { options: ChoiceO
   const t = useT();
   return (
     <div className="choices" role="radiogroup" aria-label={t('ui.chooseAnswer')}>
-      {options.map((o) => (
+      {options.map((o, i) => (
         <button
           key={o.id}
           type="button"
+          data-pitch={i}
           role="radio"
           aria-checked={value === o.id}
           className={`choice ${value === o.id ? 'on' : ''}`}

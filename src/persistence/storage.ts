@@ -59,12 +59,25 @@ function idbPut(db: IDBDatabase, value: string): Promise<void> {
   });
 }
 
+/** Every live Persistence, so flushAll() can reach the store's instance without importing it. */
+const live = new Set<Persistence>();
+
+/** Wait until every queued write has committed (app going to the background, page hiding). */
+export async function flushAll(): Promise<void> {
+  await Promise.all([...live].map((p) => p.flush()));
+}
+
 export class Persistence {
   mode: StorageMode = 'memory';
   lastError: string | null = null;
   private db: IDBDatabase | null = null;
   private pending: string | null = null;
-  private writing = false;
+  /** the running write loop, if any */
+  private writing: Promise<void> | null = null;
+
+  constructor() {
+    live.add(this);
+  }
 
   async load(): Promise<AppState> {
     try {
@@ -103,11 +116,21 @@ export class Persistence {
     if (this.mode === 'memory') return;
     this.pending = JSON.stringify(state);
     if (this.mode === 'indexeddb') journalWrite(this.pending);
-    if (this.writing) return;
-    this.writing = true;
+    if (this.writing) return this.writing;
+    this.writing = this.drain().finally(() => { this.writing = null; });
+    return this.writing;
+  }
+
+  /** Resolves once nothing is waiting to be written (the sessionStorage journal is already current). */
+  async flush(): Promise<void> {
+    while (this.writing) await this.writing;
+  }
+
+  private async drain(): Promise<void> {
+    let value = '';
     try {
       while (this.pending !== null) {
-        const value = this.pending;
+        value = this.pending;
         this.pending = null;
         if (this.mode === 'indexeddb' && this.db) {
           await idbPut(this.db, value);
@@ -117,17 +140,16 @@ export class Persistence {
       this.lastError = null;
     } catch (e) {
       this.lastError = String(e);
-      // fall back rather than lose progress
+      // fall back rather than lose progress (the newest state wins)
       if (this.mode === 'indexeddb') {
         try {
-          localStorage.setItem(LS_KEY, JSON.stringify(state));
+          localStorage.setItem(LS_KEY, this.pending ?? value);
+          this.pending = null;
           this.mode = 'localstorage';
         } catch {
           this.mode = 'memory';
         }
       }
-    } finally {
-      this.writing = false;
     }
   }
 

@@ -136,4 +136,13 @@ export type ErrorTag =
   | 'other';
 
 export type Purpose = 'assess' | 'follow-up' | 'need' | 'review' | 'mixed' | 'new' | 'lesson' | 'fluency' | 'worksheet' | 'mock';
-export type Mode = 'assessment' | 'lesson' | 'practice' | 'daily' | 'review' | 'worksheet' | 'test' | 'mock' | 'fluency';
+export type Mode = 'assessment' | 'lesson' | 'practice' | 'daily' | 'review' | 'worksheet' | 'test' | 'mock' | 'fluency' | 'adventure';
+
+/**
+ * Adventure mini-game skins: presentation only. A skin never changes the answer spec, the
+ * work keys or checking. Lily-hop comes as pads on water, ice floes (W4) or stones (W5).
+ */
+export type MiniSkin = 'bubbles' | 'lily-hop' | 'lily-hop-ice' | 'lily-hop-stone' | 'ferry-loader' | 'postman';
+export type MiniSkinFamily = 'bubbles' | 'lily-hop' | 'ferry-loader' | 'postman';
+/** The skin without its variant ('lily-hop-ice' → 'lily-hop'). */
+export const skinFamily = (s: MiniSkin): MiniSkinFamily => (s.startsWith('lily-hop') ? 'lily-hop' : (s as MiniSkinFamily));

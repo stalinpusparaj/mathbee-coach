@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Android 12+. Progress lives in the WebView's storage (IndexedDB) inside the app's private data.
+  The parent's own device backup may include it (see the privacy policy); we never receive it.
+  Temporary export files in the cache are never backed up.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="root" path="." />
+        <include domain="file" path="." />
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="root" path="." />
+        <include domain="file" path="." />
+        <include domain="database" path="." />
+        <include domain="sharedpref" path="." />
+    </device-transfer>
+</data-extraction-rules>

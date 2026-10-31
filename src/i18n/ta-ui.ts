@@ -125,7 +125,7 @@ export const TA_UI: Record<string, string> = {
   'garden.firefly': 'மின்மினி நண்பன்', 'garden.bunting': 'கொடித் தோரணம்', 'garden.wreath': 'பூமாலை', 'garden.gate': 'தோட்ட வாசல்', 'garden.picnic': 'சுற்றுலாக் கூடை', 'garden.bunny': 'தூங்கும் முயல்', 'garden.butterflies': 'வண்ணத்துப்பூச்சிகள்', 'garden.birdhouse': 'பறவைக் கூடு', 'garden.arch': 'பூ வளைவு', 'garden.fountain': 'நீரூற்று',
 
   'ui.loading': 'ஏற்றுகிறது…', 'ui.tagline': 'என் எண் தோட்டம்', 'ui.play': 'விளையாடு', 'ui.continueAs': '{name} ஆகத் தொடர்', 'ui.friend': 'நண்பா',
-  'ui.soundOn': 'ஒலி உள்ளது', 'ui.soundOff': 'ஒலி இல்லை', 'ui.musicOn': 'இசை உள்ளது', 'ui.musicOff': 'இசை இல்லை', 'ui.grownUps': 'பெரியவர்களுக்கு: அழுத்திப் பிடி', 'ui.updateReady': 'புதிய பதிப்பு தயார்.', 'ui.updateNow': 'இப்போது புதுப்பி',
+  'ui.soundOn': 'ஒலி உள்ளது', 'ui.soundOff': 'ஒலி இல்லை', 'ui.musicOn': 'இசை உள்ளது', 'ui.musicOff': 'இசை இல்லை', 'ui.grownUps': 'பெரியவர்கள்', 'ui.updateReady': 'புதிய பதிப்பு தயார்.', 'ui.updateNow': 'இப்போது புதுப்பி',
   'ui.back': 'பின்', 'ui.whoIsPlaying': 'யார் விளையாடுகிறார்கள்?', 'ui.newPlayer': 'புதிய விளையாட்டாளர்', 'ui.makePlayer': 'புதிய விளையாட்டாளர்', 'ui.pickAvatar': 'ஒரு நண்பனைத் தேர்ந்தெடு',
   'ui.nickname': 'செல்லப் பெயர்', 'ui.optional': 'விருப்பம்', 'ui.nicknameNote': 'செல்லப் பெயர் போதும் — முழுப் பெயர் வேண்டாம்.', 'ui.language': 'மொழி',
   'ui.gradeDefault': 'வகுப்பு 1 அமைக்கப்பட்டுள்ளது. பெரியவர்கள் பிறகு மாற்றலாம்.', 'ui.letsGo': 'போகலாம்!',
@@ -135,6 +135,8 @@ export const TA_UI: Record<string, string> = {
   'ui.readyToPlay': 'நான் தயார்!',
   'ui.nectarCount': '{n} தேன்', 'ui.listView': 'பட்டியல்', 'ui.mapView': 'வரைபடம்', 'ui.todaysMission': 'இன்றைய பணி',
   'ui.missionControls': 'பொத்தான் பயிற்சி', 'ui.missionCheckup': 'தோட்டச் சோதனை ({n} இடங்கள்)', 'ui.missionReview': 'மீள்பார்வை ({n})', 'ui.missionDaily': 'தினசரிப் பயிற்சி',
+  'ui.itemLabel': '{id}',
+  'ui.nextAdventure': 'அடுத்த சாகசம்: {title}', 'ui.adventure': 'சாகசம்', 'ui.adventureWorlds': 'சாகச உலகங்கள்', 'ui.moreToDo': 'இன்னும் செய்ய',
   'ui.activities': 'செயல்பாடுகள்', 'ui.dailyPractice': 'தினசரிப் பயிற்சி', 'ui.review': 'மீள்பார்வை', 'ui.worksheetsTests': 'பயிற்சித்தாள்கள், தேர்வுகள்', 'ui.restoreGarden': 'தோட்டத்தை அழகாக்கு',
   'ui.gardenMap': 'தோட்ட வரைபடம்', 'ui.drag3d': 'இழுத்துச் சுற்றிப் பாருங்கள் · விளையாட ஓர் இடத்தைத் தொடுங்கள்', 's.graphics': '3D உலகம்', 's.graphicsAuto': 'தானியங்கி (அசைவு குறைக்கப்படாவிட்டால் 3D)', 's.graphics3d': 'எப்போதும் 3D', 's.graphics2d': 'தட்டையான 2D படங்கள்', 'ui.bloomLevel': '3 இல் {n} பூக்கள்', 'ui.notTriedYet': 'இன்னும் முயலவில்லை',
   'ui.learn': 'கற்றுக்கொள்', 'ui.practise': 'பயிற்சி செய்', 'ui.later': 'பிறகு', 'ui.extension': 'கூடுதல் சவால்', 'ui.secureCount': '{total} இல் {n} நன்றாக வளர்கின்றன',

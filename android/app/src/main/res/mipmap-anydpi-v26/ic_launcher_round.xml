@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Painted bee icon (Google Flow, matched to the in-game art); vector kept for themed icons. -->
+    <background android:drawable="@drawable/ic_launcher_art" />
+    <foreground android:drawable="@drawable/ic_launcher_clear" />
+    <monochrome android:drawable="@drawable/ic_launcher_monochrome" />
+</adaptive-icon>

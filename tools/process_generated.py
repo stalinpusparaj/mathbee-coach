@@ -41,13 +41,23 @@ def key_sprite(img: Image.Image) -> Image.Image:
     labels, _ = ndimage.label(near)
     border = set(np.unique(np.concatenate([labels[0], labels[-1], labels[:, 0], labels[:, -1]]))) - {0}
     bg_region = np.isin(labels, list(border))
+    # pockets of pure key colour enclosed by the subject (e.g. between a hand and the face)
+    # are background too; subjects never use magenta, so this cannot eat real detail
+    pocket = ndimage.binary_dilation(dist < T_IN, iterations=2)
+    bg_region = bg_region | pocket
     alpha = np.clip((dist - T_IN) / (T_OUT - T_IN), 0, 1)
     alpha = np.where(bg_region, alpha, 1.0)
     # despill: pull magenta tint out of semi-transparent edge pixels
     r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
-    spill = np.clip(np.minimum(r, b) - g, 0, None) * (1 - alpha)
+    spill = np.clip(np.minimum(r, b) - g, 0, None) * np.sqrt(1 - alpha)
     rgb[..., 0] = r - spill
     rgb[..., 2] = b - spill
+    # keep only the main subject: drop small detached specks (e.g. a corner sparkle mark)
+    solid, n = ndimage.label(alpha > 0.5)
+    if n >= 1:
+        sizes = ndimage.sum(np.ones_like(alpha), solid, range(1, n + 1))
+        keep = np.isin(solid, [i + 1 for i, sz in enumerate(sizes) if sz >= 0.02 * sizes.max()])
+        alpha = np.where(ndimage.binary_dilation(keep, iterations=3), alpha, 0.0)
     out = np.dstack([np.clip(rgb, 0, 255), alpha * 255]).astype(np.uint8)
     im = Image.fromarray(out, "RGBA")
     bbox = im.getchannel("A").point(lambda a: 255 if a > 16 else 0).getbbox()
@@ -65,6 +75,8 @@ def main():
         meta_path = os.path.join(RAW, stem + ".json")
         meta = json.load(open(meta_path)) if os.path.exists(meta_path) else {}
         img = Image.open(path)
+        if meta.get("mirror"):
+            img = img.transpose(Image.FLIP_LEFT_RIGHT)
         if a["kind"] == "sprite":
             img = key_sprite(img)
             img.thumbnail((360, 360), Image.LANCZOS)

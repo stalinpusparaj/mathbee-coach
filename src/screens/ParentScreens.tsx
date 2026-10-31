@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { store, useProfile, useStore } from '../app/store';
 import { launch } from '../app/actions';
 import { useT } from '../i18n/useT';
@@ -13,7 +13,9 @@ import { BackButton, Modal } from '../components/ui';
 import { narrationAvailable } from '../audio/speech';
 import { AVATARS } from './WelcomeScreens';
 import { Sprite } from '../components/art';
-import { IS_ARTIFACT, saveTextFile } from '../app/platform';
+import { canPrint, printPage, saveTextFile, shareTextFile } from '../app/platform';
+import { inShell, installVoice, onVoicesChange } from '../app/shell';
+import { pushOverlay } from '../app/backNav';
 import { music } from '../audio/music';
 
 const pct = (c: number, n: number) => (n ? `${c}/${n} (${Math.round((100 * c) / n)}%)` : '—');
@@ -41,7 +43,8 @@ export function ParentDashboard() {
       <nav className="row wrap">
         <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'setup' })} data-testid="to-setup">{t('p.setup')}</button>
         <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'settings' })} data-testid="to-settings">{t('p.settings')}</button>
-        {!IS_ARTIFACT && <button type="button" className="btn small secondary" onClick={() => window.print()}>{t('ui.print')}</button>}
+        <button type="button" className="btn small secondary" onClick={() => store.setRoute({ name: 'tests' })} data-testid="to-tests">{t('pp.tests')}</button>
+        {canPrint() && <button type="button" className="btn small secondary" onClick={() => void printPage('MathBee report')} data-testid="print-report">{t('pp.print')}</button>}
       </nav>
 
       <section className="card disclosure">
@@ -57,6 +60,21 @@ export function ParentDashboard() {
             <li key={a.key}><span>{t(a.msg)}</span> <button type="button" className="btn tiny" onClick={() => go(a.action)}>{t('p.start')}</button></li>
           ))}
         </ol>
+      </section>
+
+      <section className="card home-ideas" data-testid="home-ideas">
+        <h2>{t('pp.home')}</h2>
+        <p className="small muted">{t('pp.homeNote')}</p>
+        <div className="home-cols">
+          <div>
+            <h3>{t('pp.tryHome')}</h3>
+            <ul>{report.home.tryAtHome.map((h) => <li key={h.key}>{t(h.msg)}</li>)}</ul>
+          </div>
+          <div>
+            <h3>{t('pp.playTogether')}</h3>
+            <ul>{report.home.playTogether.map((h) => <li key={h.key}>{t(h.msg)}</li>)}</ul>
+          </div>
+        </div>
       </section>
 
       <section className="card">
@@ -242,16 +260,35 @@ export function SettingsScreen() {
   const [importMsg, setImportMsg] = useState<{ ok: boolean; lines: string[] } | null>(null);
   const [confirmReset, setConfirmReset] = useState<'profile' | 'all' | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  // every hook runs before the early return below (Rules of Hooks)
+  const [exportText, setExportText] = useState<string | null>(null);
+  const [backupMsg, setBackupMsg] = useState<string | null>(null);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  // re-render when the phone's voice list changes (e.g. after installing the Tamil voice)
+  const [, refreshVoices] = useReducer((n: number) => n + 1, 0);
+  useEffect(() => onVoicesChange(() => refreshVoices()), []);
   if (!profile) return null;
   const s = profile.settings;
   const set = (patch: Partial<Settings>) => store.updateProfile((p) => ({ ...p, settings: { ...p.settings, ...patch } }));
-  const [exportText, setExportText] = useState<string | null>(null);
+  const backupFile = () => ({ name: `mathbee-coach-${todayStr()}.json`, json: JSON.stringify(exportPayload(store.get().app, new Date().toISOString()), null, 1) });
   const exportData = async () => {
-    const json = JSON.stringify(exportPayload(store.get().app, new Date().toISOString()), null, 1);
-    const res = await saveTextFile(`mathbee-coach-${todayStr()}.json`, json);
+    const { name, json } = backupFile();
+    const res = await saveTextFile(name, json);
     // no save surface available: show the data to copy instead
     setExportText(res === 'unavailable' ? json : null);
+    setBackupMsg(res === 'saved' ? t('pp.backupSaved') : res === 'declined' ? t('pp.backupCancelled') : null);
   };
+  const shareData = async () => {
+    const { name, json } = backupFile();
+    const res = await shareTextFile(name, json);
+    setExportText(res === 'unavailable' ? json : null);
+    setBackupMsg(res === 'shared' ? t('pp.backupShared') : res === 'declined' ? t('pp.backupCancelled') : null);
+  };
+  const canShare = inShell() || (typeof navigator !== 'undefined' && typeof navigator.share === 'function');
+  // fields added for 1.0; older saves may not have them yet
+  const openAll = s.adventureOpenAll ?? false;
+  const dailyLimit = s.dailyLimitMin ?? 0;
+  const haptics = s.haptics ?? true;
   const copyExport = async () => {
     try { await navigator.clipboard.writeText(exportText ?? ''); } catch { (document.getElementById('export-text') as HTMLTextAreaElement | null)?.select(); }
   };
@@ -291,6 +328,12 @@ export function SettingsScreen() {
           </select>
         </label>
         <p className="small muted">{t('s.tamilStatus', { status: TRANSLATION_STATUS.ta, voice: narrationAvailable('ta') ? t('s.yes') : t('s.no') })}</p>
+        {inShell() ? (
+          <div className="voice-row">
+            <button type="button" className="btn secondary" onClick={() => installVoice('ta')} data-testid="install-voice">{t('pp.installVoice')}</button>
+            <p className="small muted">{t('pp.voiceNote')}</p>
+          </div>
+        ) : <p className="small muted">{t('pp.voiceWeb')}</p>}
       </section>
       <section className="card form">
         <h2>{t('s.play')}</h2>
@@ -308,6 +351,18 @@ export function SettingsScreen() {
           </select>
         </label>
         <label className="field-row"><span>{t('s.minutes')}</span><input type="number" min={3} max={30} value={s.sessionMinutes} onChange={(e) => set({ sessionMinutes: Math.max(3, Math.min(30, Number(e.target.value) || 10)) })} data-testid="minutes" /></label>
+      </section>
+      <section className="card form" data-testid="grown-up-settings">
+        <h2>{t('pp.grownUp')}</h2>
+        <label className="field-row"><span>{t('pp.dailyLimit')}</span>
+          <select value={dailyLimit} onChange={(e) => set({ dailyLimitMin: Number(e.target.value) as Settings['dailyLimitMin'] })} data-testid="daily-limit">
+            <option value={0}>{t('pp.limitOff')}</option>
+            {[15, 20, 30].map((n) => <option key={n} value={n}>{t('pp.limitMin', { n })}</option>)}
+          </select>
+        </label>
+        <p className="small muted">{t('pp.limitNote')}</p>
+        <label className="check"><input type="checkbox" checked={openAll} onChange={(e) => set({ adventureOpenAll: e.target.checked })} data-testid="open-all" /> {t('pp.openAll')}</label>
+        <label className="check"><input type="checkbox" checked={haptics} onChange={(e) => set({ haptics: e.target.checked })} data-testid="haptics-setting" /> {t('pp.haptics')}</label>
       </section>
       <section className="card form">
         <h2>{t('s.learning')}</h2>
@@ -328,7 +383,8 @@ export function SettingsScreen() {
         <p className="small">{t(`s.storage.${storage}`)}{storageError ? ` (${storageError})` : ''}</p>
         <p className="small muted">{t('s.privacy')}</p>
         <div className="row wrap">
-          <button type="button" className="btn secondary" onClick={exportData} data-testid="export">{t('s.export')}</button>
+          <button type="button" className="btn secondary" onClick={exportData} data-testid="export">{t('pp.backup')}</button>
+          {canShare && <button type="button" className="btn secondary" onClick={shareData} data-testid="export-share">{t('pp.backupShare')}</button>}
           <button type="button" className="btn secondary" onClick={() => fileRef.current?.click()} data-testid="import">{t('s.import')}</button>
           <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importData(e.target.files[0])} data-testid="import-file" />
         </div>
@@ -339,13 +395,18 @@ export function SettingsScreen() {
             <button type="button" className="btn small" onClick={copyExport}>{t('s.copy')}</button>
           </div>
         )}
+        {backupMsg && <p className="small" role="status" data-testid="backup-msg">{backupMsg}</p>}
         {importMsg && <div className={`notice ${importMsg.ok ? 'ok' : 'bad'}`} role="status" data-testid="import-msg">{importMsg.lines.map((l, i) => <p key={i}>{l}</p>)}</div>}
         <div className="row wrap">
           <button type="button" className="btn danger" onClick={() => setConfirmReset('profile')} data-testid="reset-profile">{t('s.resetProfile')}</button>
           <button type="button" className="btn danger" onClick={() => setConfirmReset('all')} data-testid="reset-all">{t('s.resetAll')}</button>
         </div>
       </section>
-      <section className="card"><p className="small muted">{t('s.about')}</p></section>
+      <section className="card">
+        <p className="small muted">{t('s.about')}</p>
+        <button type="button" className="btn small secondary" onClick={() => setShowPrivacy(true)} data-testid="privacy-link">{t('pp.privacy')}</button>
+      </section>
+      {showPrivacy && <PrivacySheet onClose={() => setShowPrivacy(false)} />}
       {confirmReset && (
         <Modal title={t('s.confirmTitle')} onClose={() => setConfirmReset(null)}>
           <p>{t(confirmReset === 'all' ? 's.confirmAll' : 's.confirmProfile')}</p>
@@ -359,3 +420,29 @@ export function SettingsScreen() {
   );
 }
 
+
+/**
+ * The bundled privacy policy (public/privacy.html), shown inside the app: the Android app has no
+ * internet access, and leaving the app from the grown-up area would be confusing.
+ */
+function PrivacySheet({ onClose }: { onClose: () => void }) {
+  const t = useT();
+  const ref = useRef<HTMLButtonElement>(null);
+  useEffect(() => pushOverlay(onClose), [onClose]);
+  useEffect(() => {
+    const prev = document.activeElement as HTMLElement | null;
+    ref.current?.focus();
+    return () => prev?.focus?.();
+  }, []);
+  return (
+    <div className="modal-backdrop privacy-backdrop" role="presentation">
+      <div className="privacy-sheet" role="dialog" aria-modal="true" aria-label={t('pp.privacyTitle')} data-testid="privacy-sheet">
+        <header className="row spread">
+          <h2>{t('pp.privacyTitle')}</h2>
+          <button ref={ref} type="button" className="btn small secondary" onClick={onClose} data-testid="privacy-close">{t('pp.close')}</button>
+        </header>
+        <iframe className="privacy-frame" src={`${import.meta.env.BASE_URL}privacy.html`} title={t('pp.privacyTitle')} sandbox="allow-same-origin" />
+      </div>
+    </div>
+  );
+}

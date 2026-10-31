@@ -4,7 +4,8 @@ import { createProfile, selectProfile, markFamiliarised } from '../app/actions';
 import { useT } from '../i18n/useT';
 import { t as translate } from '../i18n/i18n';
 import { Sprite } from '../components/art';
-import { BeeSays, HoldButton, BackButton } from '../components/ui';
+import { BeeSays, BackButton } from '../components/ui';
+import { ParentEntry } from '../components/ParentGate';
 import { Keypad } from '../components/AnswerPanel';
 import { MusicToggle } from '../components/MusicToggle';
 import { sfx } from '../audio/sfx';
@@ -40,7 +41,7 @@ export function WelcomeScreen() {
           <button type="button" className="btn small secondary" onClick={() => profile && store.updateProfile((p) => ({ ...p, settings: { ...p.settings, sound: !p.settings.sound } }))} disabled={!profile} aria-pressed={sound}>
             {sound ? '🔊' : '🔈'} {t(sound ? 'ui.soundOn' : 'ui.soundOff')}
           </button>
-          {profile && <HoldButton label={t('ui.grownUps')} onDone={() => store.setRoute({ name: 'parent' })} testId="parent-hold" />}
+          {profile && <ParentEntry />}
         </div>
         {updateReady && <UpdateBanner />}
       </div>
@@ -87,7 +88,11 @@ export function ProfileNewScreen() {
   return (
     <div className="screen profile-new">
       <header className="topbar"><BackButton onClick={() => store.setRoute({ name: 'welcome' })} label={t('ui.back')} /><h1>{t('ui.makePlayer')}</h1><span /></header>
-      <form className="card form" onSubmit={(e) => { e.preventDefault(); createProfile(avatar, nick, lang); }}>
+      <form className="card form" onSubmit={(e) => {
+        e.preventDefault();
+        // a new player first hears Buzzy's story (createProfile routes to the intro); the story then leads to the button practice
+        createProfile(avatar, nick, lang);
+      }}>
         <fieldset>
           <legend>{t('ui.pickAvatar')}</legend>
           <div className="avatar-grid">

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { answerCurrent, current, newProfile, nectar } from './helpers';
+import { answerCurrent, current, finishOnboarding, newProfile, nectar, openParent, openTests, passGate } from './helpers';
 
 const CATS = Array.from({ length: 14 }, (_, i) => `C${String(i + 1).padStart(2, '0')}`);
 
@@ -109,7 +109,8 @@ test('keyboard-only: digits and Enter answer a question; Escape pauses', async (
 
 test('generic test: no hints or feedback, answers survive refresh, confirmation, explanations', async ({ page }) => {
   await newProfile(page);
-  await page.getByTestId('tests').click();
+  await expect(page.getByTestId('tests')).toHaveCount(0); // tests live in the grown-up area now
+  await openTests(page);
   await page.getByTestId('start-generic').click();
   await expect(page.getByTestId('mock')).toBeVisible();
   await expect(page.getByTestId('hint')).toHaveCount(0);
@@ -119,6 +120,7 @@ test('generic test: no hints or feedback, answers survive refresh, confirmation,
   if (await choice.count()) await choice.click(); else await key.click();
   await page.reload();
   await page.getByTestId('continue').click();
+  await passGate(page); // a mock test is a grown-up route: after a reload the gate asks again
   await expect(page.getByTestId('mock')).toBeVisible();
   const answered = page.locator('.qnav button.answered');
   await expect(answered).toHaveCount(1);
@@ -131,23 +133,17 @@ test('generic test: no hints or feedback, answers survive refresh, confirmation,
 
 test('official mock stays locked until the parent confirms rules', async ({ page }) => {
   await newProfile(page);
-  await page.getByTestId('tests').click();
+  await openTests(page);
   await expect(page.getByTestId('start-official')).toHaveCount(0);
   await page.goto('/?e2e');
   await page.getByTestId('continue').click();
-  // open parent area via press-and-hold
-  const hold = page.getByTestId('parent-hold');
-  await hold.hover();
-  await page.mouse.down();
-  await page.waitForTimeout(1800);
-  await page.mouse.up();
-  await expect(page.getByTestId('parent')).toBeVisible();
+  // open the parent area: a tap, then the parent gate
+  await openParent(page);
   await page.getByTestId('to-setup').click();
   await page.getByTestId('comp-count').fill('10');
   await page.getByTestId('rules-confirmed').check();
-  await page.getByTestId('save-setup').click();
-  await page.getByTestId('back').click();
-  await page.getByTestId('tests').click();
+  await page.getByTestId('save-setup').click(); // saving returns to the grown-up dashboard
+  await page.getByTestId('to-tests').click();
   await expect(page.getByTestId('start-official')).toBeVisible();
 });
 
@@ -160,11 +156,7 @@ test('parent area: report reflects real attempts; import rejects malformed data;
   await page.getByTestId('pause').click();
   await page.getByTestId('stop').click();
   await page.getByTestId('to-map').click();
-  const hold = page.getByTestId('parent-hold');
-  await hold.hover();
-  await page.mouse.down();
-  await page.waitForTimeout(1800);
-  await page.mouse.up();
+  await openParent(page);
   await expect(page.getByTestId('parent')).toContainText(/Based on 1 recorded questions/);
   await expect(page.getByTestId('parent')).not.toContainText(/readiness:/i);
   await page.getByTestId('to-settings').click();
@@ -187,7 +179,7 @@ test('storage unavailable: play continues with a visible warning', async ({ brow
   await expect(page.getByRole('alert')).toContainText(/cannot be saved/i);
   await page.getByTestId('play').click();
   await page.getByTestId('create-profile').click();
-  await page.getByTestId('skip-controls').click();
+  await finishOnboarding(page);
   await page.getByTestId('mission').click();
   await answerCurrent(page, true);
   await expect(page.getByTestId('next')).toBeVisible();
@@ -207,7 +199,7 @@ test('offline: after the first visit the app loads and plays without a network',
   await expect(page.locator('.welcome-card img')).toBeVisible();
   await page.getByTestId('play').click();
   await page.getByTestId('create-profile').click();
-  await page.getByTestId('skip-controls').click();
+  await finishOnboarding(page);
   await page.getByTestId('loc-C12').click();
   await page.getByTestId('practise-apply').click();
   await expect(page.getByTestId('session')).toBeVisible();
@@ -252,7 +244,7 @@ test('update handling: a new version waits and is applied only when asked', asyn
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
     await page.getByTestId('play').click();
     await page.getByTestId('create-profile').click();
-    await page.getByTestId('skip-controls').click();
+    await finishOnboarding(page);
     await page.getByTestId('back').click();
 
     // "deploy" a new version: a byte-different service worker on the server
@@ -296,7 +288,7 @@ test('background music really plays after the first tap, quieter during question
   await expect.poll(async () => (await state()).context).toBe('running');
   await expect.poll(async () => (await state()).level, { timeout: 5000 }).toBeGreaterThan(0.2);
   await page.getByTestId('create-profile').click();
-  await page.getByTestId('skip-controls').click();
+  await finishOnboarding(page);
   await page.getByTestId('mission').click();
   await expect.poll(async () => (await state()).scene).toBe('play');
   await expect.poll(async () => (await state()).level, { timeout: 5000 }).toBeLessThan(0.16);
@@ -324,11 +316,7 @@ test('3D garden: explorable world opens places, the bee journey is 3D, and grown
   await page.getByTestId('to-map').click();
 
   // grown-ups: Graphics → flat 2D brings back the picture map
-  const hold = page.getByTestId('parent-hold');
-  await hold.hover();
-  await page.mouse.down();
-  await page.waitForTimeout(1800);
-  await page.mouse.up();
+  await openParent(page);
   await page.getByTestId('to-settings').click();
   await page.getByTestId('graphics-setting').selectOption('2d');
   await page.reload();

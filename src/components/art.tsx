@@ -53,6 +53,8 @@ export function Sprite({ id, size = 48, alt, style, className, decorative }: Spr
       alt={label}
       aria-hidden={!label}
       draggable={false}
+      loading="lazy"
+      decoding="async"
       onError={() => setFailed(true)}
       className={className}
       style={{ width: dim, height: dim, objectFit: 'contain', ...style }}
@@ -82,7 +84,7 @@ export function Turtle({ size, label, className, style }: { size: string; label:
 export function Bird({ species, size = '48px', label }: { species: BirdSpecies; size?: string; label?: string }) {
   // generated bird art, when present, replaces the drawn silhouette (same species, same role)
   const art = spriteUrl(`bird_${species}`);
-  if (art) return <img src={art} alt={label ?? ''} aria-hidden={!label} draggable={false} style={{ width: size, height: size, objectFit: 'contain' }} />;
+  if (art) return <img src={art} alt={label ?? ''} aria-hidden={!label} draggable={false} loading="lazy" decoding="async" style={{ width: size, height: size, objectFit: 'contain' }} />;
   const common = { width: size, height: size, viewBox: '0 0 100 100', role: label ? 'img' : undefined, 'aria-label': label || undefined, 'aria-hidden': !label } as const;
   const ink = '#3d2b1f';
   switch (species) {

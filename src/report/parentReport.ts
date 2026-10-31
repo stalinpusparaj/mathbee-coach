@@ -24,6 +24,9 @@ export interface SpeedRow { subskill: string; earlierMs: number; recentMs: numbe
 
 export interface NextAction { key: string; msg: Msg; action: { kind: 'lesson' | 'practice' | 'review' | 'assessment' | 'worksheet' | 'fluency'; subskill?: string; category?: CategoryId } }
 
+/** An everyday idea for the grown-up: something to try at home, or a game to play together. */
+export interface HomeIdea { key: string; category: CategoryId; msg: Msg }
+
 export interface Report {
   evidence: Record<string, SkillEvidence>;
   coverage: { ref: string; description: string; category: CategoryId; readable: string; status: 'not-assessed' | 'needs-evidence' | 'learning' | 'secure' }[];
@@ -39,6 +42,8 @@ export interface Report {
   totals: Record<SkillState, number>;
   attemptsTotal: number;
   dueReviews: string[];
+  /** "Try at home" and "Play together" ideas, chosen from what the evidence says */
+  home: { tryAtHome: HomeIdea[]; playTogether: HomeIdea[] };
 }
 
 function emptyStates(): Record<SkillState, number> {
@@ -130,6 +135,30 @@ export function buildReport(profile: Profile, today: DateStr): Report {
     totals,
     attemptsTotal: atts.length,
     dueReviews: due,
+    home: homeIdeas(statements, observations),
+  };
+}
+
+/** Topics suggested when there is no evidence yet: counting, pairs and the days of the week. */
+const STARTER_TOPICS: CategoryId[] = ['C01', 'C07', 'C11'];
+
+/**
+ * Everyday ideas for the grown-up. "Try at home" targets what needs support first (then
+ * recurring mistakes, then new topics); "Play together" builds on what the child can already
+ * do, so playing together feels like success. Never more than 3 + 2 items.
+ */
+export function homeIdeas(statements: Report['statements'], observations: Observation[]): Report['home'] {
+  const cat = (subskill: string) => subskill.slice(0, 3) as CategoryId;
+  const uniq = (xs: CategoryId[]) => xs.filter((c, i) => xs.indexOf(c) === i && CATEGORIES.some((k) => k.id === c));
+  const support = statements.filter((s) => s.kind === 'support').map((s) => cat(s.subskill));
+  const recurring = observations.filter((o) => o.confidence === 'recurring').map((o) => cat(o.subskill));
+  const assess = statements.filter((s) => s.kind === 'assess').map((s) => cat(s.subskill));
+  const can = statements.filter((s) => s.kind === 'can').map((s) => cat(s.subskill));
+  const tryCats = uniq([...support, ...recurring, ...assess, ...STARTER_TOPICS]).slice(0, 3);
+  const playCats = uniq([...can, ...support, ...STARTER_TOPICS]).slice(0, 2);
+  return {
+    tryAtHome: tryCats.map((c) => ({ key: `try:${c}`, category: c, msg: msg(`home.try.${c}`) })),
+    playTogether: playCats.map((c) => ({ key: `play:${c}`, category: c, msg: msg(`home.play.${c}`) })),
   };
 }
 

@@ -57,13 +57,44 @@ export async function answerCurrent(page: Page, correct = true) {
   await page.getByTestId('check').click();
 }
 
+/** After "create player": skip the story intro (its skip button shows after 2 s), then the button practice. */
+export async function finishOnboarding(page: Page) {
+  await expect(page.getByTestId('intro')).toBeVisible();
+  await page.getByTestId('intro-skip').click();
+  await page.getByTestId('skip-controls').click();
+}
+
 export async function newProfile(page: Page, name = 'Ari') {
   await page.goto('/?e2e');
   await page.getByTestId('play').click();
   await page.getByTestId('nickname').fill(name);
   await page.getByTestId('create-profile').click();
-  await page.getByTestId('skip-controls').click();
+  await finishOnboarding(page);
   await expect(page.getByTestId('mission')).toBeVisible();
+}
+
+/** Answer the parent gate that is showing (under ?e2e the gate exposes its answer in data-answer). */
+export async function passGate(page: Page) {
+  const gate = page.getByTestId('parent-gate');
+  await expect(gate).toBeVisible();
+  const a = await gate.getAttribute('data-answer');
+  expect(a).toMatch(/^\d+$/);
+  for (const d of a!) await page.getByTestId(`gate-key-${d}`).click();
+  await page.getByTestId('gate-submit').click();
+  await expect(gate).toHaveCount(0);
+}
+
+/** Open the grown-up area from the garden map or welcome screen (a tap, then the gate). */
+export async function openParent(page: Page) {
+  await page.getByTestId('parent-hold').click();
+  await passGate(page);
+  await expect(page.getByTestId('parent')).toBeVisible();
+}
+
+/** Worksheets & tests now live in the grown-up area. */
+export async function openTests(page: Page) {
+  await openParent(page);
+  await page.getByTestId('to-tests').click();
 }
 
 export async function nectar(page: Page): Promise<number> {

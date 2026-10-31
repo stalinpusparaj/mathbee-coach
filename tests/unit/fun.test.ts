@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { newProfile } from '../../src/persistence/schema';
 import {
   comboAt, questsFor, goldenDays, giftWaiting, openGift, treasureFor, treasureCounts, friendsMet, hatsUnlocked, currentHat, suggestRest, TREASURES, HATS, REST_AFTER,
+  minutesPlayed, sessionEndDue,
 } from '../../src/learning/fun';
 import { t } from '../../src/i18n/i18n';
 import type { Attempt, Profile, SessionRecord, SlotState } from '../../src/learning/types';
@@ -57,7 +58,7 @@ describe('daily quests', () => {
     expect(questsFor(p, D).every((x) => x.have === 0)).toBe(true);
   });
   it('every quest kind has English and Tamil text', () => {
-    for (const k of ['journey', 'solve5', 'solve10', 'places2', 'firstTry3', 'lesson', 'hintHelp', 'worksheet3'])
+    for (const k of ['journey', 'solve5', 'solve10', 'places2', 'firstTry3', 'lesson', 'hintHelp', 'worksheet3', 'stars2'])
       for (const lang of ['en', 'ta'] as const) expect(t({ k: `quest.${k}` }, lang)).not.toBe(`quest.${k}`);
   });
 });
@@ -110,5 +111,56 @@ describe('quest variety', () => {
       const kinds = questsFor(base(), date).map((q) => (q.kind.startsWith('solve') ? 'solve' : q.kind));
       expect(new Set(kinds).size).toBe(3);
     }
+  });
+});
+
+describe('adventure and fun', () => {
+  const adv = (over: Partial<SessionRecord>) => sess({ mode: 'adventure', theme: 'meadow', ...over });
+
+  it('friends are the union: practice journeys as before, plus finished adventure friend levels only', () => {
+    // an adventure core level about pot sizes (C04) does not meet the town's owl, and stopped friend levels do not count
+    const p = { ...base(), sessions: [adv({ levelId: 'w1-03', categories: ['C04'] }), adv({ levelId: 'w2-11', theme: 'river', categories: ['C02', 'C03'], completed: false })] };
+    expect(friendsMet(p)).toEqual([]);
+    const q = { ...p, sessions: [...p.sessions, adv({ levelId: 'w1-12', categories: ['C01', 'C04', 'C07'] }), sess({ categories: ['C09'] })] };
+    expect(friendsMet(q)).toEqual(['meadow', 'ice']);
+    expect(friendsMet({ sessions: [adv({ levelId: 'w7-12', theme: 'garden', categories: ['C01', 'C08'] })] })).toEqual(['garden']);
+  });
+
+  it('quests keep the same rotation for children without adventure, and never change during a day', () => {
+    const plain = base();
+    const withAdv = { ...base(), sessions: [adv({ levelId: 'w1-01' })] }; // adventure played today only
+    const noAdvField = { ...plain, adventure: undefined };
+    for (let d = 0; d < 60; d++) {
+      const date = new Date(Date.UTC(2026, 9, 1 + d)).toISOString().slice(0, 10);
+      const kinds = questsFor(plain, date).map((q) => q.kind);
+      expect(questsFor(noAdvField, date).map((q) => q.kind)).toEqual(kinds);
+      expect(kinds).not.toContain('stars2');
+      if (date <= D) expect(questsFor(withAdv, date).map((q) => q.kind)).toEqual(questsFor({ ...withAdv, sessions: [] }, date).map((q) => q.kind));
+    }
+  });
+
+  it('the adventure quest can appear only after an adventure day, and fills from finished levels', () => {
+    const p = { ...base(), sessions: [adv({ levelId: 'w1-01', date: '2026-09-01' })] };
+    const dates = Array.from({ length: 120 }, (_, d) => new Date(Date.UTC(2026, 8, 2 + d)).toISOString().slice(0, 10));
+    const date = dates.find((x) => questsFor(p, x).some((q) => q.kind === 'stars2'))!;
+    expect(date).toBeDefined();
+    const today = { ...p, sessions: [...p.sessions, adv({ levelId: 'w1-02', date }), adv({ levelId: 'w1-03', date }), adv({ levelId: 'w1-04', date, completed: false })] };
+    expect(questsFor(today, date).find((q) => q.kind === 'stars2')).toMatchObject({ have: 2, done: true });
+  });
+
+  it('the daily limit is off by default; when set it ends play between levels and replaces the 3-run rest rule', () => {
+    const run = (min: number, over: Partial<SessionRecord> = {}) => sess({ startedAt: 0, endedAt: min * 60_000, ...over });
+    const p = { ...base(), sessions: [run(8), run(9, { completed: false }), run(600, { date: '2026-09-28' })] };
+    expect(minutesPlayed(p, D)).toBe(17);
+    expect(sessionEndDue(p, D)).toBe(false); // limit 0 = off
+    const limited = { ...p, settings: { ...p.settings, dailyLimitMin: 15 as const } };
+    expect(sessionEndDue(limited, D)).toBe(true);
+    expect(sessionEndDue({ ...limited, settings: { ...limited.settings, dailyLimitMin: 20 as const } }, D)).toBe(false);
+    // one rest system: with a limit set, three short runs no longer suggest a rest
+    const three = { ...limited, settings: { ...limited.settings, dailyLimitMin: 30 as const }, sessions: [run(2), run(2), run(2)] };
+    expect(suggestRest(three, D)).toBe(false);
+    expect(suggestRest({ ...three, settings: { ...three.settings, dailyLimitMin: 0 as const } }, D)).toBe(true);
+    // a forgotten open run counts for at most 30 minutes
+    expect(minutesPlayed({ sessions: [run(500)] }, D)).toBe(30);
   });
 });

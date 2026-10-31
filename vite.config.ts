@@ -41,11 +41,33 @@ function serviceWorkerPlugin(): Plugin {
 }
 
 /**
+ * Android bundle: drops the web-app manifest and favicon links (the APK has its own icon and the
+ * links would point outside /web/) from index.html.
+ */
+function androidHtmlPlugin(): Plugin {
+  return {
+    name: 'mathbee-android-html',
+    apply: 'build',
+    transformIndexHtml(html) {
+      return html.replace(/\s*<link rel="(?:manifest|icon)"[^>]*>/g, '');
+    },
+  };
+}
+
+/**
  * `vite build --mode artifact` builds the claude.ai Artifact version: relative paths,
  * no service worker (the Artifact viewer does not support them), output in dist-artifact/.
+ *
+ * `vite build --mode android` builds the bundle packed into the Android app, served from
+ * https://appassets.androidplatform.net/web/ : base /web/, no service worker (the APK holds every
+ * file), output in dist-android/. Test hooks (?e2e, ?gallery) are compiled out unless VITE_E2E=1.
  */
-export default defineConfig(({ mode }) => ({
-  base: mode === 'artifact' ? './' : '/',
-  plugins: mode === 'artifact' ? [react()] : [react(), serviceWorkerPlugin()],
-  build: { target: 'es2020', sourcemap: false, outDir: mode === 'artifact' ? 'dist-artifact' : 'dist' },
-}));
+export default defineConfig(({ mode }) => {
+  const android = mode === 'android';
+  const artifact = mode === 'artifact';
+  return {
+    base: artifact ? './' : android ? '/web/' : '/',
+    plugins: artifact ? [react()] : android ? [react(), androidHtmlPlugin()] : [react(), serviceWorkerPlugin()],
+    build: { target: 'es2020', sourcemap: false, outDir: artifact ? 'dist-artifact' : android ? 'dist-android' : 'dist' },
+  };
+});

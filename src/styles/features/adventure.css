@@ -1,1 +1,302 @@
-/* adventure feature styles (owned by its work package) */
+/* adventure feature styles (owned by its work package: WP4 adventure UI + mini-game skins) */
+
+/* ---------- per-world tokens (kept equal to THEMES + WORLD_PALETTE in journey.ts by a unit test) ---------- */
+[data-world='meadow'] { --world-sky: #bfe6fb; --world-sky-2: #fff4d6; --world-far: #b9dca0; --world-mid: #7fbf5f; --world-near: #5a9e43; --world-ground: #9fd27f; --world-accent: #e86a92; --world-ink: #4a2b3a; }
+[data-world='river'] { --world-sky: #b5e2fa; --world-sky-2: #eaf8ff; --world-far: #a9d6c4; --world-mid: #6fb47d; --world-near: #4f9a5c; --world-ground: #79c2e2; --world-accent: #2b8fbf; --world-ink: #16425b; }
+[data-world='orchard'] { --world-sky: #ffe4b8; --world-sky-2: #fff8e8; --world-far: #d6d99a; --world-mid: #8cbf5a; --world-near: #6aa043; --world-ground: #b7d98b; --world-accent: #d9412b; --world-ink: #5a2a12; }
+[data-world='ice'] { --world-sky: #cfeeff; --world-sky-2: #f6fcff; --world-far: #e3f3fb; --world-mid: #b9def0; --world-near: #9ccfe6; --world-ground: #8fcbe8; --world-accent: #3d7bd9; --world-ink: #1d3c5e; }
+[data-world='trail'] { --world-sky: #cfeabf; --world-sky-2: #f6fbec; --world-far: #9cc88a; --world-mid: #5f9a4c; --world-near: #467e37; --world-ground: #86b86b; --world-accent: #8a5a2b; --world-ink: #33402a; }
+[data-world='town'] { --world-sky: #ffd9b8; --world-sky-2: #fff4e6; --world-far: #e6c9a0; --world-mid: #c79f6b; --world-near: #a07b4b; --world-ground: #c9b07c; --world-accent: #b5562a; --world-ink: #4d2f1a; }
+[data-world='garden'] { --world-sky: #c4e8fb; --world-sky-2: #fff4d6; --world-far: #bfe0a8; --world-mid: #86c46a; --world-near: #5f9f48; --world-ground: #a6d98a; --world-accent: #e7a92f; --world-ink: #3d2b1f; }
+
+/* ---------- shared bits ---------- */
+.adv-blooms { display: inline-flex; gap: 1px; font-size: 1rem; line-height: 1; color: #d8ccb4; }
+.adv-blooms .on { color: var(--world-accent, var(--coral-dark)); text-shadow: 0 1px 0 rgba(0, 0, 0, 0.15); }
+.adv-friend { display: inline-flex; align-items: center; justify-content: center; }
+.adv-friend.grey { filter: grayscale(1) opacity(0.55); }
+.adv-note { margin: 4px 0; text-align: center; font-weight: 800; color: var(--world-ink, var(--ink)); }
+.adv-note.small { font-weight: 700; font-size: 0.9rem; }
+.adv-note.gentle { min-height: 1.4em; font-size: 0.95rem; }
+.adv-note.knows { background: #fff4cf; border: 2px solid var(--honey-dark); border-radius: 999px; padding: 4px 12px; }
+.adv-decor { text-align: center; font-size: 1.4rem; letter-spacing: 4px; margin: 0; }
+
+/* ---------- worlds screen ---------- */
+.world-cards { list-style: none; margin: 8px 0 24px; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr)); }
+.world-card {
+  position: relative; overflow: hidden; width: 100%; min-height: 128px; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 12px;
+  padding: 36px 14px 14px; text-align: left; font: inherit; color: var(--world-ink); cursor: pointer;
+  background: linear-gradient(180deg, var(--world-sky), var(--world-sky-2) 70%);
+  border: 3px solid var(--ink); border-radius: 22px; box-shadow: 0 4px 0 var(--ink); touch-action: manipulation;
+}
+.world-card:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 2px 0 var(--ink); }
+.world-card > * { position: relative; }
+.world-card .wc-hills {
+  position: absolute; inset: auto 0 0 0; height: 46%;
+  background: radial-gradient(ellipse 60% 70% at 15% 100%, var(--world-far) 0 60%, transparent 61%),
+    radial-gradient(ellipse 60% 80% at 85% 100%, var(--world-mid) 0 60%, transparent 61%),
+    linear-gradient(0deg, var(--world-ground) 0 22%, transparent 22%);
+  opacity: 0.75;
+}
+.world-card .wc-num { position: absolute; top: 6px; left: 12px; font-size: 0.8rem; font-weight: 900; background: rgba(255, 255, 255, 0.8); border-radius: 999px; padding: 1px 10px; }
+.world-card .wc-body { display: grid; gap: 4px; }
+.world-card .wc-name { font-size: 1.15rem; line-height: 1.2; }
+.world-card .wc-blooms { font-weight: 800; }
+.world-card .wc-blooms span { color: var(--world-accent); }
+.world-card .wc-bar { display: block; height: 10px; border-radius: 999px; background: rgba(255, 255, 255, 0.8); border: 2px solid var(--world-ink); overflow: hidden; }
+.world-card .wc-bar span { display: block; height: 100%; background: var(--world-accent); }
+.world-card .wc-closed { display: flex; align-items: center; gap: 6px; }
+.world-card .wc-closed .bud-art { width: 40px; height: 40px; }
+.world-card .wc-knows { font-weight: 800; }
+.world-card .wc-here { position: absolute; top: 6px; right: 10px; font-size: 0.8rem; font-weight: 900; background: var(--honey); border: 2px solid var(--ink); border-radius: 999px; padding: 1px 10px; }
+.world-card.current { outline: 4px solid var(--honey); outline-offset: 2px; animation: adv-glow 2.4s ease-in-out infinite; }
+.world-card.closed { cursor: default; filter: saturate(0.45); opacity: 0.85; }
+.world-card:disabled, .world-card[aria-disabled='true'] { opacity: 0.85; }
+@keyframes adv-glow { 0%, 100% { box-shadow: 0 4px 0 var(--ink), 0 0 0 0 rgba(247, 191, 53, 0.6); } 50% { box-shadow: 0 4px 0 var(--ink), 0 0 0 10px rgba(247, 191, 53, 0); } }
+
+/* painted world backdrops (generated art); a soft wash keeps text readable */
+.world-card[style*="--world-art"] {
+  background: linear-gradient(90deg, rgba(255, 253, 248, 0.92) 0 38%, rgba(255, 253, 248, 0.55) 62%, rgba(255, 253, 248, 0.1)), var(--world-art) center / cover no-repeat, var(--world-sky);
+}
+.world-card[style*="--world-art"] .wc-hills { display: none; }
+.world-map[style*="--world-art"] { position: relative; isolation: isolate; background: var(--world-sky-2); }
+/* the painting fills the top of the screen and fades softly into the world colour */
+.world-map[style*="--world-art"]::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: max(70vh, 420px); z-index: -1; pointer-events: none;
+  background: var(--world-art) center top / cover no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000 45%, transparent);
+  mask-image: linear-gradient(180deg, #000 45%, transparent);
+}
+.world-map[style*="--world-art"] .wp { background: transparent; }
+/* the painting already gives depth: drop the flat far/mid shapes on top of it */
+.world-map[style*="--world-art"] .wp-layer.far, .world-map[style*="--world-art"] .wp-layer.mid { display: none; }
+
+/* ---------- world map ---------- */
+.world-map { background: linear-gradient(180deg, var(--world-sky), var(--world-sky-2) 40%, var(--world-sky-2)); color: var(--world-ink); }
+.world-map .topbar { position: sticky; top: 0; z-index: 6; background: color-mix(in srgb, var(--world-sky) 88%, transparent); padding: 6px 0; }
+.world-map .topbar h1 { font-size: 1.15rem; }
+.wp { position: relative; width: 100%; max-width: 520px; margin: 0 auto; overflow: hidden; border-radius: 24px; background: linear-gradient(180deg, var(--world-sky-2), var(--world-ground) 160%); }
+.wp-layer { position: absolute; left: 0; right: 0; top: -60%; bottom: 0; pointer-events: none; will-change: transform; }
+.wp-layer.far {
+  background: radial-gradient(ellipse 45% 120px at 0% 50%, var(--world-far) 0 98%, transparent 100%),
+    radial-gradient(ellipse 40% 100px at 100% 80%, var(--world-far) 0 98%, transparent 100%);
+  background-size: 100% 520px; opacity: 0.7; transform: translate3d(0, calc(var(--wp-scroll, 0) * 0.45px), 0);
+}
+.wp-layer.mid {
+  background: radial-gradient(circle 46px at 6% 30%, var(--world-mid) 0 98%, transparent 100%),
+    radial-gradient(circle 38px at 96% 65%, var(--world-mid) 0 98%, transparent 100%);
+  background-size: 100% 380px; opacity: 0.6; transform: translate3d(0, calc(var(--wp-scroll, 0) * 0.25px), 0);
+}
+.wp-layer.near {
+  background: radial-gradient(ellipse 22px 30px at 3% 50%, var(--world-near) 0 98%, transparent 100%),
+    radial-gradient(ellipse 22px 30px at 97% 20%, var(--world-near) 0 98%, transparent 100%);
+  background-size: 100% 260px; opacity: 0.55; transform: translate3d(0, calc(var(--wp-scroll, 0) * 0.08px), 0);
+}
+.wp-svg { position: absolute; left: 0; top: 0; pointer-events: none; }
+.wp-path-edge { fill: none; stroke: rgba(61, 43, 31, 0.25); stroke-width: 30; stroke-linecap: round; }
+.wp-path { fill: none; stroke: #f3e2b8; stroke-width: 22; stroke-linecap: round; }
+.wp-branch { fill: none; stroke: var(--world-ink); stroke-width: 5; stroke-dasharray: 2 12; stroke-linecap: round; opacity: 0.55; }
+.wp-node { position: absolute; transform: translate(-50%, -50%); z-index: 2; }
+.wp-bud {
+  width: 100%; height: 100%; min-width: 64px; min-height: 64px; padding: 0; border: none; border-radius: 50%; cursor: pointer;
+  background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.85) 0 55%, transparent 56%); touch-action: manipulation;
+}
+.wp-bud:focus-visible { outline: 4px solid var(--world-accent); outline-offset: 2px; }
+.wp-bud[aria-disabled='true'] { cursor: default; }
+/* the current bud stays still (a moving target is hard to tap); its dashed ring breathes instead */
+.wp-node.current::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; border: 4px dashed var(--honey); pointer-events: none; animation: bud-pulse 2s ease-in-out infinite; }
+@keyframes bud-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.65; } }
+.wp-node.side .wp-bud { background: radial-gradient(circle at 50% 55%, rgba(255, 255, 255, 0.6) 0 55%, transparent 56%); }
+.wp-label { position: absolute; width: max-content; top: 50%; transform: translateY(-50%); display: grid; gap: 2px; font-size: 0.88rem; font-weight: 800; line-height: 1.15; pointer-events: none; }
+.wp-label.right { left: calc(100% + 6px); text-align: left; }
+.wp-label.left { right: calc(100% + 6px); text-align: right; justify-items: end; }
+.wp-label.below { top: calc(100% + 4px); left: 50%; transform: translateX(-50%); text-align: center; justify-items: center; width: max-content; }
+.wp-title { background: rgba(255, 255, 255, 0.82); border-radius: 10px; padding: 1px 6px; overflow-wrap: anywhere; }
+.wp-node.locked .wp-title { opacity: 0.75; }
+.wp-bee { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; transition: transform 900ms ease-in-out; }
+
+/* bud art */
+.bud-art { width: 100%; height: 100%; display: block; overflow: visible; }
+.bud-shadow { fill: rgba(61, 43, 31, 0.18); }
+.bud-stem { stroke: #487a3d; stroke-width: 5; stroke-linecap: round; fill: none; }
+.bud-closed { fill: #9fd27f; stroke: #3d6b32; stroke-width: 2.5; }
+.bud-sepal { fill: #5a9e43; stroke: #3d6b32; stroke-width: 1.5; }
+.bud-petal { fill: var(--world-accent, #e86a92); stroke: var(--ink); stroke-width: 2; }
+.bud-petal.opening { fill: #ffe1ea; }
+.bud-heart { fill: var(--honey); stroke: var(--ink); stroke-width: 2.5; }
+.bud-num { font: 900 18px var(--font); fill: var(--ink); }
+.wp-node.locked .bud-num { fill: #2f4d27; font-size: 15px; }
+
+/* friend house (last node) */
+.friend-house { position: relative; display: grid; justify-items: center; width: 100%; height: 100%; }
+.friend-house .fh-roof { width: 92%; height: 34%; background: var(--world-accent); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.friend-house .fh-wall { width: 76%; height: 62%; background: #fff8e8; border: 3px solid var(--ink); border-top: none; border-radius: 0 0 14px 14px; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.friend-house .fh-num { position: absolute; top: 18%; font-weight: 900; color: #fff; font-size: 0.9rem; }
+.friend-house.locked .fh-roof { filter: grayscale(0.7); }
+
+/* list view */
+.level-list { list-style: none; margin: 8px auto 24px; padding: 0; display: grid; gap: 8px; max-width: 520px; }
+.level-list li.side { margin-left: 24px; }
+.level-row { width: 100%; min-height: 64px; display: grid; grid-template-columns: 56px 1fr auto; gap: 10px; align-items: center; padding: 6px 12px; font: inherit; font-weight: 800; text-align: left; color: var(--world-ink); background: #fff; border: 3px solid var(--ink); border-radius: 18px; box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
+.level-list li.locked .level-row { background: #f4efe4; box-shadow: 0 2px 0 var(--ink); }
+.level-list li.current .level-row { outline: 4px solid var(--honey); }
+.level-row .lr-bud { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; }
+.level-row .lr-title { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+/* ---------- level intro card ---------- */
+.adv-intro-backdrop { z-index: 90; }
+.adv-intro {
+  width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; display: grid; gap: 10px; justify-items: center; text-align: center;
+  padding: 18px 16px; color: var(--world-ink); background: linear-gradient(180deg, var(--world-sky), #fff 60%);
+  border: 4px solid var(--ink); border-radius: 26px; box-shadow: 0 6px 0 var(--ink);
+}
+.adv-intro h2 { margin: 0; font-size: 1.3rem; }
+.ai-friend { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: center; width: 100%; position: relative; }
+.ai-line { margin: 0; background: #fff; border: 3px solid var(--ink); border-radius: 18px; padding: 10px 12px; font-weight: 800; text-align: left; position: relative; }
+.ai-hear { grid-column: 2; justify-self: end; margin-top: -4px; } /* its own row under the bubble: never covers the friend's words */
+.ai-meta { display: flex; flex-wrap: wrap; gap: 8px 14px; justify-content: center; align-items: center; margin: 4px 0; font-weight: 800; }
+.ai-meta .adv-blooms { font-size: 1.4rem; }
+.ai-q { font-weight: 700; color: var(--ink-soft); }
+.adv-intro .ai-go { min-height: 64px; width: 100%; font-size: 1.35rem; }
+
+/* ---------- level results ---------- */
+.level-results { background: linear-gradient(180deg, var(--world-sky), var(--world-sky-2) 55%); color: var(--world-ink); text-align: center; display: grid; gap: 14px; align-content: start; }
+.lr-head { display: flex; gap: 12px; align-items: center; justify-content: center; text-align: left; }
+.lr-head h1 { margin: 0; font-size: 1.4rem; }
+.lr-head p { margin: 0; }
+.lr-done { font-weight: 900; color: var(--leaf); }
+.petal-meter h2 { margin: 0 0 4px; }
+.petals { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.petal { width: 22px; height: 30px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 2px solid rgba(61, 43, 31, 0.35); background: rgba(255, 255, 255, 0.7); }
+.petal.on { background: var(--world-accent); border-color: var(--ink); animation: petal-fill 320ms ease-out backwards; animation-delay: calc(var(--i) * var(--step, 140ms)); }
+@keyframes petal-fill { from { transform: scale(0.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.bloom-pop { background: rgba(255, 255, 255, 0.85); border: 3px solid var(--ink); border-radius: 24px; padding: 12px; box-shadow: 0 4px 0 var(--ink); }
+.lr-bloomed { margin: 0; font-weight: 900; font-size: 1.15rem; }
+.big-blooms { display: flex; gap: 10px; justify-content: center; font-size: 3.4rem; line-height: 1.1; color: #e3d8c2; }
+.big-bloom.on { color: var(--world-accent); animation: bloom-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1) backwards; animation-delay: calc(var(--start-ms, 0ms) + var(--i) * 250ms + 200ms); } /* chimes use the same delays */
+@keyframes bloom-pop { from { transform: scale(0) rotate(-40deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; } }
+.lr-new { font-weight: 900; margin: 6px 0 0; }
+.bloom-pop { position: relative; }
+.lr-hear { position: absolute; top: 8px; right: 8px; }
+.lr-nectar { margin: 0; }
+.lr-nectar .nectar { display: inline-block; animation: nectar-arc 700ms ease-out backwards 900ms; }
+@keyframes nectar-arc { from { transform: translateY(18px) scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.lr-actions { display: grid; gap: 10px; justify-items: center; }
+.lr-actions .btn { width: min(360px, 100%); }
+
+/* ---------- friend cutscene ---------- */
+.adv-cutscene {
+  position: fixed; inset: 0; z-index: 50; display: grid; grid-template-rows: auto 1fr auto auto; gap: 8px; overflow: auto;
+  padding: max(12px, var(--sat, 0px)) 16px max(16px, var(--sab, 0px)); color: var(--world-ink);
+  background: linear-gradient(180deg, var(--world-sky), var(--world-sky-2) 60%, var(--world-ground));
+}
+.cut-panel { display: grid; gap: 12px; align-content: center; justify-items: center; text-align: center; }
+.cut-art { position: relative; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; justify-content: center; min-height: 170px; width: min(480px, 100%); animation: ken-burns 7s ease-in-out infinite alternate; }
+@keyframes ken-burns { from { transform: scale(1) translateX(-6px); } to { transform: scale(1.08) translateX(6px); } }
+.cut-sprite { animation: cut-in 500ms ease-out backwards; animation-delay: calc(var(--k) * 140ms); }
+.cut-bloom .cut-sprite { animation-name: cut-bloom; }
+@keyframes cut-in { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes cut-bloom { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.cut-friend { animation: friend-wave 1.6s ease-in-out infinite; transform-origin: 50% 100%; }
+@keyframes friend-wave { 0%, 100% { transform: rotate(-4deg); } 50% { transform: rotate(4deg); } }
+.cut-text { font-size: 1.25rem; font-weight: 900; margin: 0; background: rgba(255, 255, 255, 0.85); border: 3px solid var(--ink); border-radius: 20px; padding: 12px 16px; max-width: 520px; }
+.cut-together { max-width: 480px; background: #fff8e8; border: 2px dashed var(--world-ink); border-radius: 14px; padding: 8px 12px; margin: 0; }
+.cut-controls { display: flex; gap: 12px; justify-content: center; align-items: center; }
+
+/* =================== mini-game skins (look only) =================== */
+/* Bubble Pop */
+.skin-bubbles .field-area { background: radial-gradient(circle at 30% 20%, #e6f6ff, #bfe6fb 70%); border-radius: 20px; }
+.skin-bubbles .obj { min-width: 56px; min-height: 56px; border-radius: 50%; }
+.skin-bubbles .obj.marked { background: transparent; border-color: transparent; }
+.skin-bubbles .bubble {
+  position: relative; display: block; width: 100%; height: 100%; padding: 12%; border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.95) 0 9%, rgba(255, 255, 255, 0.25) 10% 55%, rgba(135, 206, 250, 0.35) 75%, rgba(180, 140, 255, 0.45));
+  box-shadow: inset 0 0 0 2px rgba(120, 170, 220, 0.8); animation: bubble-bob 3.2s ease-in-out infinite alternate;
+}
+.skin-bubbles .bubble.popped { background: none; box-shadow: none; animation: bubble-pop 260ms ease-out; }
+.skin-bubbles .bubble.popped::after { content: ''; position: absolute; inset: 0; border-radius: 50%; border: 3px dotted var(--leaf); }
+.skin-bubbles .sparkle { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; background: var(--honey); clip-path: polygon(50% 0, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0 50%, 39% 39%); }
+@keyframes bubble-bob { from { transform: translateY(-3px); } to { transform: translateY(3px); } }
+@keyframes bubble-pop { from { transform: scale(1.18); } to { transform: scale(1); } }
+
+/* Lily-Pad Hop (lily / ice / stone) */
+.lily-line { width: 100%; display: block; }
+.lily-water { fill: #7cc6ea; }
+.pad-ice .lily-water { fill: #3f86b8; }
+.pad-stone .lily-water { fill: #8cc7d8; }
+.lily-pad { fill: #6cbf4f; stroke: #2f6b24; stroke-width: 2; }
+.pad-ice .lily-pad { fill: #f4fbff; stroke: #6aa6c9; }
+.pad-stone .lily-pad { fill: #c9c2b4; stroke: #6e6556; }
+.lily-pad.start { stroke: var(--honey-dark); stroke-width: 4; }
+.lily-pad.visited { fill: #a7e08a; }
+.pad-ice .lily-pad.visited { fill: #dff2ff; }
+.pad-stone .lily-pad.visited { fill: #e5dfd2; }
+.lily-num { font: 800 16px var(--font); fill: var(--ink); }
+.lily-hop { fill: none; stroke-width: 3; stroke-dasharray: 6 5; }
+.lily-hop.fwd { stroke: #487a3d; }
+.lily-hop.back { stroke: #b5562a; }
+.lily-bee { transition: transform 320ms ease-out; }
+.lily-bee-body { fill: var(--honey); stroke: var(--ink); stroke-width: 2; }
+.lily-bee-stripe { stroke: var(--ink); stroke-width: 3; }
+.lily-bee-wing { fill: rgba(255, 255, 255, 0.85); stroke: var(--ink); stroke-width: 1.5; }
+.trail.skin-lily .stones { background: #7cc6ea; border-radius: 28px; padding: 14px 10px; }
+.trail.pad-ice .stones { background: #3f86b8; }
+.trail.pad-stone .stones { background: #8cc7d8; }
+.trail.skin-lily .stone { min-width: 64px; height: 56px; background: #6cbf4f; border-color: #2f6b24; color: #fff; text-shadow: 0 1px 0 #2f6b24; }
+.trail.pad-ice .stone { background: #f4fbff; border-color: #6aa6c9; color: var(--ink); text-shadow: none; border-radius: 40% 55% 45% 60%; }
+.trail.pad-stone .stone { background: #c9c2b4; border-color: #6e6556; color: var(--ink); text-shadow: none; }
+.trail.skin-lily .stone.gap { background: rgba(255, 255, 255, 0.55); border-style: dashed; color: var(--ink); text-shadow: none; }
+.trail.skin-lily .stone.gap button { min-height: 56px; }
+.trail.skin-lily .stone.gap.filled { background: #fff4b8; border-style: solid; border-color: var(--honey-dark); box-shadow: 0 0 0 4px rgba(247, 191, 53, 0.45); }
+
+/* Ferry Loader */
+.skin-ferry-loader .zone.ferry-boat { background: linear-gradient(180deg, transparent 55%, #7cc6ea 55%); border-radius: 18px; }
+.skin-ferry-loader .dock-animals { background: repeating-linear-gradient(90deg, #d9b98a 0 26px, #c9a574 26px 28px); }
+.skin-ferry-loader .aboard-animal { animation: waddle-in 480ms ease-out backwards; }
+@keyframes waddle-in { 0% { transform: translateX(-14px) rotate(-8deg); opacity: 0; } 50% { transform: translateX(-4px) rotate(8deg); opacity: 1; } 100% { transform: none; } }
+
+/* Bee Postman */
+.postman-sign { margin: 0 0 6px; text-align: center; font-weight: 900; }
+.skin-postman .week-row { background: linear-gradient(0deg, #c9b07c 0 14px, transparent 14px); padding-bottom: 10px; }
+.skin-postman .day { border-radius: 4px 4px 8px 8px; background: #fff8e8; margin-top: 14px; }
+.skin-postman .day .house-roof { position: absolute; left: -3px; right: -3px; top: -16px; height: 16px; background: var(--coral, #e87a5d); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.skin-postman .day.bee-here { background: #fff4cf; }
+.skin-postman .postman-letter { position: absolute; bottom: 2px; right: 2px; font-size: 0.9rem; }
+
+/* a gentle note for taps on closed buds / worlds: a toast at the bottom, always in view */
+.adv-toast {
+  position: fixed; left: 50%; bottom: calc(20px + var(--sab, 0px)); transform: translateX(-50%); z-index: 80;
+  width: min(420px, calc(100vw - 32px)); margin: 0; pointer-events: none; text-align: center;
+}
+.adv-toast span {
+  display: block; padding: 12px 16px; background: #fffaf0; color: var(--ink); font-weight: 800; font-size: 1.05rem;
+  border: 3px solid var(--ink); border-radius: 20px; box-shadow: 0 4px 0 var(--ink); animation: toast-in 260ms ease-out;
+}
+@keyframes toast-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+/* the bud to play first wiggles once (a glow only under reduced motion) */
+.adv-nudge { animation: adv-wiggle 700ms ease-in-out 2; box-shadow: 0 0 0 6px rgba(247, 191, 53, 0.75); }
+.wp-bud.adv-nudge { border-radius: 50%; }
+@keyframes adv-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg) scale(1.06); } 75% { transform: rotate(8deg) scale(1.06); } }
+
+/* =================== reduced motion: keep the content, drop the movement =================== */
+.reduce-motion .world-card.current, .reduce-motion .wp-node.current::before, .reduce-motion .petal.on, .reduce-motion .big-bloom.on,
+.reduce-motion .lr-nectar .nectar, .reduce-motion .cut-art, .reduce-motion .cut-sprite, .reduce-motion .cut-friend,
+.reduce-motion .skin-bubbles .bubble, .reduce-motion .skin-ferry-loader .aboard-animal,
+.reduce-motion .adv-toast span, .reduce-motion .adv-nudge { animation: none; }
+.reduce-motion .wp-bee, .reduce-motion .lily-bee { transition: none; }
+.reduce-motion .wp-layer { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  html:not(.full-motion) .world-card.current, html:not(.full-motion) .wp-node.current::before, html:not(.full-motion) .petal.on,
+  html:not(.full-motion) .big-bloom.on, html:not(.full-motion) .lr-nectar .nectar, html:not(.full-motion) .cut-art,
+  html:not(.full-motion) .cut-sprite, html:not(.full-motion) .cut-friend, html:not(.full-motion) .skin-bubbles .bubble,
+  html:not(.full-motion) .skin-ferry-loader .aboard-animal, html:not(.full-motion) .adv-toast span,
+  html:not(.full-motion) .adv-nudge { animation: none; }
+  html:not(.full-motion) .wp-bee, html:not(.full-motion) .lily-bee { transition: none; }
+  html:not(.full-motion) .wp-layer { transform: none; }
+}
+
+/* small phones */
+@media (max-width: 360px) {
+  .wp-label { font-size: 0.85rem; }
+  .big-blooms { font-size: 2.8rem; }
+  .cut-text { font-size: 1.1rem; }
+}

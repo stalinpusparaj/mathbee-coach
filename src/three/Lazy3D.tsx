@@ -1,14 +1,18 @@
 import { Component, Suspense, lazy, type ReactNode } from 'react';
+import { markWebglLost } from './support';
 
 /** three.js is only downloaded when a 3D view is actually shown. */
 export const Garden3D = lazy(() => import('./Garden3D'));
 export const Journey3D = lazy(() => import('./Journey3D'));
 
-/** If the 3D view fails (lost WebGL context, old GPU), quietly show the flat version instead. */
+/**
+ * If the 3D view fails (lost WebGL context, old GPU), quietly show the flat version instead,
+ * and keep using flat views for the rest of this run.
+ */
 class Fallback extends Component<{ flat: ReactNode; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(e: unknown) { console.warn('3D view unavailable, using 2D', e); }
+  componentDidCatch(e: unknown) { markWebglLost(); console.warn('3D view unavailable, using 2D', e); }
   render() { return this.state.failed ? this.props.flat : this.props.children; }
 }
 

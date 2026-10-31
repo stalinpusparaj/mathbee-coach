@@ -1,4 +1,5 @@
-import type { CategoryId, ErrorTag, Format, Mode, Purpose, Response, Stage } from '../engine/types';
+import type { CategoryId, ErrorTag, Format, MiniSkin, Mode, Purpose, Response, Stage } from '../engine/types';
+import type { JourneyTheme } from '../activities/journey';
 
 export type DateStr = string; // YYYY-MM-DD (local calendar date, compared as strings)
 
@@ -35,6 +36,10 @@ export interface Attempt {
   firstResponse?: Response;
   /** operation / category not announced (mixed session, mock, worksheet) */
   unannounced: boolean;
+  /** adventure level this question was played in */
+  levelId?: string;
+  /** set only when an adventure attempt went over the daily evidence cap (still counts for petals) */
+  countsAsEvidence?: false;
 }
 
 export type LessonPhase = 'worked' | 'guided' | 'faded' | 'independent' | 'transfer';
@@ -62,6 +67,8 @@ export interface Slot {
   phase?: LessonPhase;
   /** hide the category/operation name (mixed practice) */
   unannounced?: boolean;
+  /** adventure mini-game skin (presentation only) */
+  skin?: MiniSkin;
 }
 
 export interface SlotState {
@@ -94,6 +101,10 @@ export interface ActiveSession {
   /** consecutive first-attempt errors per subskill (for prerequisite offers) */
   errorStreak: Record<string, number>;
   finished: boolean;
+  /** set when this session plays an adventure level */
+  adventure?: { levelId: string; world: WorldId; theme: JourneyTheme };
+  /** question nectar paid in this session so far (adventure award keys are per level and day, not per session) */
+  nectarPaid?: number;
 }
 
 export interface SessionRecord {
@@ -108,6 +119,33 @@ export interface SessionRecord {
   nectar: number;
   categories: CategoryId[];
   completed: boolean;
+  /** adventure runs only: the world theme and the level played */
+  theme?: JourneyTheme;
+  levelId?: string;
+}
+
+// ---------- adventure ----------
+export type WorldId = 'w1' | 'w2' | 'w3' | 'w4' | 'w5' | 'w6' | 'w7' | 'bonus';
+
+/** Best result for one adventure level. Stars never decrease. */
+export interface AdventureLevelProgress {
+  stars: 0 | 1 | 2 | 3;
+  bestPetals: number;
+  maxPetals: number;
+  plays: number;
+  firstClearedOn: DateStr | null;
+  lastPlayedOn: DateStr | null;
+  /** last run recorded (makes recording idempotent) */
+  lastSessionId?: string;
+}
+
+export interface AdventureProgress {
+  version: 1;
+  levels: Record<string, AdventureLevelProgress>;
+  /** friend cutscenes already shown */
+  friendsCelebrated: WorldId[];
+  /** the bee stands here on the map */
+  lastLevelId: string | null;
 }
 
 export interface MockConfig {
@@ -154,6 +192,11 @@ export interface Settings {
   reviewIntervals: number[];
   unlockRegrouping: boolean;
   showExtensions: boolean;
+  /** parent choice: every adventure world and level is open */
+  adventureOpenAll: boolean;
+  /** daily play limit in minutes (0 = off); checked only between levels and sessions */
+  dailyLimitMin: 0 | 15 | 20 | 30;
+  haptics: boolean;
 }
 
 export interface Competition {
@@ -193,6 +236,8 @@ export interface Profile {
   /** hat chosen for the bee (unlocked by garden level) */
   beeHat?: string | null;
   screened: CategoryId[];
+  /** adventure map progress (optional: older saves are filled in on load) */
+  adventure?: AdventureProgress;
   activeSession: ActiveSession | null;
   activeMock: MockState | null;
   mockHistory: MockResult[];
@@ -216,6 +261,9 @@ export const DEFAULT_SETTINGS: Settings = {
   reviewIntervals: [1, 3, 7, 14],
   unlockRegrouping: false,
   showExtensions: true,
+  adventureOpenAll: false,
+  dailyLimitMin: 0,
+  haptics: true,
 };
 
 export const DEFAULT_COMPETITION: Competition = {

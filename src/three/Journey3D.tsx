@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { THEMES, type JourneyTheme } from '../activities/journey';
 import type { StepMark } from '../components/JourneyTrack';
@@ -28,11 +28,14 @@ export default function Journey3D({ theme, at, total, marks, finished = false, l
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const api = useRef<Api | null>(null);
+  // a lost WebGL context is thrown during render so With3D's boundary swaps in the flat track
+  const [lost, setLost] = useState(false);
+  if (lost) throw new Error('WebGL context lost');
 
   useEffect(() => {
     const el = wrap.current!;
     const th = THEMES[theme];
-    const renderer = makeRenderer(canvas.current!);
+    const renderer = makeRenderer(canvas.current!, () => setLost(true));
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(th.sky[1], 16, 50);
     scene.add(skyDome(th.sky[0], th.sky[1], 120));

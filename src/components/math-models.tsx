@@ -1,4 +1,19 @@
 /** Ten-frames, base-ten blocks and number lines — rendered from numbers, never from art. */
+import { bump, hop } from '../fx/juice';
+import { sfx } from '../audio/sfx';
+
+/**
+ * Counting feel (§5): when the child marks the n-th object it hops 6 px and glows, its number
+ * badge pops, and it sings note n of the world's pentatonic scale. Purely presentational —
+ * scenes call it from their mark handler with the marked element; it never changes the work.
+ * Under reduced motion only the glow and the note remain.
+ */
+export function markFx(el: Element | null | undefined, n: number, badge?: Element | null): void {
+  hop(el);
+  bump(badge);
+  sfx.count(n);
+}
+
 
 export function TenFrame({ filled, color = '#d9412b', second = 0, secondColor = '#487A3D', label }: { filled: number; color?: string; second?: number; secondColor?: string; label?: string }) {
   return (

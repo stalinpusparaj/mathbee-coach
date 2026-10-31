@@ -15,7 +15,9 @@ import { SOLUTION } from '../activities/sceneTypes';
 import { AnswerPanel } from '../components/AnswerPanel';
 import { BackButton, Modal } from '../components/ui';
 import { ActiveTimer } from '../learning/activeTime';
-import { IS_ARTIFACT } from '../app/platform';
+import { canPrint, printPage } from '../app/platform';
+import { onShell } from '../app/shell';
+import { pushOverlay } from '../app/backNav';
 import type { MockResult } from '../learning/types';
 
 function CategoryPicker({ value, onChange }: { value: CategoryId[]; onChange: (v: CategoryId[]) => void }) {
@@ -123,17 +125,39 @@ export function MockScreen() {
   const [, force] = useState(0);
   useEffect(() => {
     timer.current.start();
-    const vis = () => (document.hidden ? timer.current.hold('hidden') : timer.current.release('hidden'));
-    document.addEventListener('visibilitychange', vis);
-    const iv = window.setInterval(() => {
-      force((x) => x + 1);
-      // persist elapsed active time periodically so a refresh keeps the clock honest
-      store.updateProfile((p) => (p.activeMock ? { ...p, activeMock: { ...p.activeMock, activeMs: p.activeMock.activeMs + timer.current.stop() } } : p));
+    // persist elapsed active time so a refresh keeps the clock honest: every 15 s, and at once
+    // whenever the app is hidden or paused (WebView may not fire visibilitychange on pause)
+    let away = false;
+    const persist = () => {
+      const held = timer.current;
+      store.updateProfile((p) => (p.activeMock ? { ...p, activeMock: { ...p.activeMock, activeMs: p.activeMock.activeMs + held.stop() } } : p));
       timer.current = new ActiveTimer();
       timer.current.start();
+      if (away) timer.current.hold('hidden');
+    };
+    const setAway = (gone: boolean) => {
+      if (gone === away) return;
+      away = gone;
+      if (gone) { persist(); timer.current.hold('hidden'); } else timer.current.release('hidden');
+    };
+    const vis = () => setAway(document.hidden);
+    document.addEventListener('visibilitychange', vis);
+    const offShell = onShell('lifecycle', (msg) => {
+      if (msg.state === 'pause') setAway(true);
+      else if (msg.state === 'resume') setAway(false);
+    });
+    let ticks = 0;
+    const iv = window.setInterval(() => {
+      force((x) => x + 1);
+      if (++ticks % 3 === 0) persist();
     }, 5000);
-    return () => { document.removeEventListener('visibilitychange', vis); clearInterval(iv); };
+    return () => { document.removeEventListener('visibilitychange', vis); offShell(); clearInterval(iv); };
   }, []);
+  // Android back / Escape: open (or close) the submit / keep-working sheet, like the session's
+  // pause sheet; with no test to show, back leads to the garden like the on-screen button
+  const hasTest = useRef(!!m);
+  hasTest.current = !!m;
+  useEffect(() => pushOverlay(() => (hasTest.current ? setConfirm((c) => !c) : store.setRoute({ name: 'map' }))), []);
   const q = useMemo(() => (m ? m.questions[m.current] : null), [m?.current, m?.id]);
   const inst = useMemo(() => (q ? generateQuestion(q.templateId, q.seed, q.format) : null), [q]);
   if (!profile || !m || !inst) return <div className="screen center"><p>{t('ui.noTest')}</p><button className="btn" onClick={() => store.setRoute({ name: 'map' })}>{t('ui.back')}</button></div>;
@@ -241,7 +265,7 @@ export function PrintScreen({ categories, count, seed }: { categories: CategoryI
       <header className="topbar no-print">
         <BackButton onClick={() => store.setRoute({ name: 'tests' })} label={t('ui.back')} />
         <h1>{t('ui.printable')}</h1>
-        {IS_ARTIFACT ? <span /> : <button type="button" className="btn primary" onClick={() => window.print()} data-testid="print-btn">🖨 {t('ui.print')}</button>}
+        {canPrint() ? <button type="button" className="btn primary" onClick={() => void printPage(t('ui.sheetTitle'))} data-testid="print-btn">🖨 {t('ui.print')}</button> : <span />}
       </header>
       <article className="sheet">
         <h1>{t('ui.sheetTitle')}</h1>

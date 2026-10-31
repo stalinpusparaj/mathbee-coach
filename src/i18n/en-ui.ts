@@ -173,7 +173,7 @@ export const EN_UI: Record<string, string> = {
 
   // child UI
   'ui.loading': 'Loading…', 'ui.tagline': 'My Number Garden', 'ui.play': 'Play', 'ui.continueAs': 'Continue as {name}', 'ui.friend': 'Friend',
-  'ui.soundOn': 'Sound on', 'ui.soundOff': 'Sound off', 'ui.musicOn': 'Music on', 'ui.musicOff': 'Music off', 'ui.grownUps': 'Hold for grown-ups', 'ui.updateReady': 'A new version is ready.', 'ui.updateNow': 'Update now',
+  'ui.soundOn': 'Sound on', 'ui.soundOff': 'Sound off', 'ui.musicOn': 'Music on', 'ui.musicOff': 'Music off', 'ui.grownUps': 'Grown-ups', 'ui.updateReady': 'A new version is ready.', 'ui.updateNow': 'Update now',
   'ui.back': 'Back', 'ui.whoIsPlaying': 'Who is playing?', 'ui.newPlayer': 'New player', 'ui.makePlayer': 'New player', 'ui.pickAvatar': 'Pick a friend',
   'ui.nickname': 'Nickname', 'ui.optional': 'optional', 'ui.nicknameNote': 'A nickname is enough — please do not use a full name.', 'ui.language': 'Language',
   'ui.gradeDefault': 'Grade 1 is set. A grown-up can change settings later.', 'ui.letsGo': 'Let’s go!',
@@ -183,6 +183,7 @@ export const EN_UI: Record<string, string> = {
   'ui.readyToPlay': 'I’m ready!',
   'ui.nectarCount': '{n} nectar', 'ui.listView': 'List', 'ui.mapView': 'Map', 'ui.todaysMission': 'Today’s mission',
   'ui.missionControls': 'Button practice', 'ui.missionCheckup': 'Garden check-up ({n} places to visit)', 'ui.missionReview': 'Review ({n})', 'ui.missionDaily': 'Daily practice',
+  'ui.nextAdventure': 'Next adventure: {title}', 'ui.adventure': 'Adventure', 'ui.adventureWorlds': 'Adventure worlds', 'ui.moreToDo': 'More to do',
   'ui.activities': 'Activities', 'ui.dailyPractice': 'Daily practice', 'ui.review': 'Review', 'ui.worksheetsTests': 'Worksheets & tests', 'ui.restoreGarden': 'Restore the garden',
   'ui.gardenMap': 'Garden map', 'ui.drag3d': 'Drag to look around · tap a place to play', 'ui.bloomLevel': '{n} of 3 flowers', 'ui.notTriedYet': 'not tried yet',
   'ui.learn': 'Learn', 'ui.practise': 'Practise', 'ui.later': 'later', 'ui.extension': 'extra challenge', 'ui.secureCount': '{n} of {total} growing well',

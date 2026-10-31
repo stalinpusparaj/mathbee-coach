@@ -1,1 +1,108 @@
-/* juice feature styles (owned by its work package) */
+/* juice feature styles (owned by its work package): the juice kit, combo glow, gift,
+   hints, the big "hear it" button and the natural session-end scene.
+   Every effect has a reduced-motion path at the bottom (html.reduce-motion and the system
+   setting): no translation, scale, rotation or particles — at most an instant change. */
+
+/* ---------- juice kit (src/fx) ---------- */
+.fx-canvas { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 80; pointer-events: none; }
+.fx-drop {
+  position: fixed; z-index: 81; font-size: 1.9rem; line-height: 1; pointer-events: none;
+  transform: translate(-50%, -50%); will-change: transform, opacity;
+  filter: drop-shadow(0 3px 3px rgba(61, 43, 31, .25));
+}
+.fx-bloom {
+  position: fixed; inset: 0; z-index: 75; pointer-events: none;
+  background: radial-gradient(circle, rgba(255, 246, 176, .9) 0%, rgba(255, 216, 77, .55) 40%, rgba(255, 216, 77, 0) 75%);
+}
+/* hit-stop: the celebration holds still for a beat before the payoff */
+html.fx-hitstop .celebration, html.fx-hitstop .celebration * { animation-play-state: paused !important; }
+/* a short highlight (not motion — it also shows under reduced motion) */
+.fx-glow { box-shadow: 0 0 0 4px rgba(255, 216, 77, .9), 0 0 14px 4px rgba(255, 216, 77, .6) !important; border-radius: 12px; }
+/* a picked-up object lifts off the page (the scale itself is set inline by dnd.ts) */
+[data-lifted] { filter: drop-shadow(0 8px 6px rgba(61, 43, 31, .3)); }
+
+/* celebration length follows the component's duration (combo milestones stay a little longer) */
+.celebration { animation-duration: var(--celebrate-ms, 2s); }
+
+/* ---------- session ---------- */
+/* the big "hear it again" button: a pre-reader's most important control */
+.session .icon-btn.hear-big { min-width: 56px; min-height: 56px; font-size: 1.6rem; }
+/* a new hint slides in gently */
+.session .hints li:last-child { animation: fx-hint-in .3s ease-out; }
+@keyframes fx-hint-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* combo chip: appears with a pop and fades out on its own after 4 s (Fun.tsx) */
+.combo-chip { animation: combo-pop .45s cubic-bezier(.2, 1.6, .4, 1), fx-chip-fade 4s ease-in forwards; }
+@keyframes fx-chip-fade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+
+/* combo milestone: the journey glows gold for a fixed time, then softly fades */
+.journey-wrap .journey::after, .journey-wrap .journey3d::after {
+  content: ''; position: absolute; inset: 0; z-index: 5; pointer-events: none; opacity: 0; transition: opacity 1.2s ease;
+  background: linear-gradient(180deg, rgba(255, 224, 122, .38), rgba(247, 191, 53, .2));
+  box-shadow: inset 0 0 0 3px #ffd84d;
+}
+.journey-wrap.combo-gold .journey::after, .journey-wrap.combo-gold .journey3d::after { opacity: 1; transition-duration: .4s; }
+.jl-bee-loop, .jl-bee-still { display: flex; width: 100%; height: 100%; }
+/* the bee loops the loop once around a point above its head */
+.jl-bee-loop { transform-origin: 50% -70%; animation: fx-bee-loop 0.9s cubic-bezier(.45, .05, .35, 1); }
+@keyframes fx-bee-loop { from { transform: rotate(0deg); } to { transform: rotate(-360deg); } }
+
+/* ---------- gift ---------- */
+.gift-lid { display: block; font-size: 44px; line-height: 1; height: 0; overflow: visible; animation: fx-lid-pop .6s ease-out forwards; pointer-events: none; }
+@keyframes fx-lid-pop { 0% { transform: translateY(20px) rotate(0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translateY(-46px) rotate(-24deg); opacity: 0; } }
+
+/* ---------- natural session end: golden hour ---------- */
+.screen.session-end {
+  min-height: 100dvh; display: grid; align-content: center; justify-items: center; gap: 12px; text-align: center;
+  background: linear-gradient(180deg, #ffd79a 0%, #ffbf7a 45%, #f5a46f 100%);
+  color: var(--ink);
+}
+.se-scene {
+  position: relative; width: min(100%, 520px); height: 230px; overflow: hidden;
+  border: 3px solid var(--ink); border-radius: var(--radius);
+  background: linear-gradient(180deg, #ffb46b 0%, #ffd38c 55%, #ffe9b8 100%);
+}
+.se-sun {
+  position: absolute; left: 50%; bottom: 52px; width: 120px; height: 120px; margin-left: -60px; border-radius: 50%;
+  background: radial-gradient(circle, #fff3b0 0%, #ffcf5a 55%, rgba(255, 207, 90, 0) 72%);
+  animation: fx-sun-set 6s ease-out forwards;
+}
+@keyframes fx-sun-set { from { transform: translateY(-30px); } to { transform: none; } }
+.se-hill { position: absolute; left: -10%; right: -10%; border-radius: 50% 50% 0 0; }
+.se-hill.far { bottom: 0; height: 90px; background: #b7a35a; opacity: .75; }
+.se-hill.near { bottom: -20px; height: 80px; left: 10%; right: -20%; background: #8a7a3f; }
+.se-firefly {
+  position: absolute; width: 8px; height: 8px; border-radius: 50%; pointer-events: none;
+  background: #fff6b0; box-shadow: 0 0 10px 4px rgba(255, 240, 150, .8);
+  animation-name: fx-firefly; animation-timing-function: ease-in-out; animation-iteration-count: infinite;
+}
+@keyframes fx-firefly {
+  0%, 100% { transform: translate(0, 0); opacity: .2; }
+  30% { transform: translate(14px, -10px); opacity: 1; }
+  60% { transform: translate(-8px, -18px); opacity: .5; }
+  80% { transform: translate(6px, -6px); opacity: .9; }
+}
+.se-bee { position: absolute; left: 50%; bottom: 26px; margin-left: -60px; width: 120px; height: 120px; display: flex; transform-origin: 50% 90%; animation: fx-yawn 3.2s ease-in-out infinite; }
+.se-bee img, .se-bee svg { filter: saturate(.85) drop-shadow(0 6px 8px rgba(61, 43, 31, .25)); }
+.se-yawn { position: absolute; right: -14px; top: -6px; font-size: 1.8rem; animation: fx-zzz 3.2s ease-in-out infinite; }
+@keyframes fx-yawn { 0%, 100% { transform: scale(1, 1); } 40% { transform: scale(1.04, .94); } 55% { transform: scale(.98, 1.05); } }
+@keyframes fx-zzz { 0%, 100% { transform: translateY(0); opacity: .5; } 50% { transform: translateY(-8px); opacity: 1; } }
+.se-title { margin: 4px 0 0; font-size: 1.6rem; }
+.se-text { margin: 0; max-width: 32em; font-size: 1.1rem; font-weight: 700; }
+.se-blooms { margin: 0; font-weight: 800; }
+.se-actions { display: grid; gap: 12px; width: min(100%, 360px); margin-top: 6px; }
+.se-actions .btn { min-height: 56px; width: 100%; }
+
+/* ---------- reduced motion ---------- */
+html.reduce-motion .fx-canvas, html.reduce-motion .fx-drop, html.reduce-motion .fx-bloom, html.reduce-motion .gift-lid { display: none; }
+html.reduce-motion .jl-bee-loop, html.reduce-motion .session .hints li:last-child, html.reduce-motion .combo-chip,
+html.reduce-motion .se-sun, html.reduce-motion .se-bee, html.reduce-motion .se-yawn, html.reduce-motion .se-firefly { animation: none; }
+html.reduce-motion .se-firefly { opacity: .8; }
+html.reduce-motion .journey-wrap .journey::after { transition: opacity .15s linear; }
+@media (prefers-reduced-motion: reduce) {
+  html:not(.full-motion) .fx-canvas, html:not(.full-motion) .fx-drop, html:not(.full-motion) .fx-bloom, html:not(.full-motion) .gift-lid { display: none; }
+  html:not(.full-motion) .jl-bee-loop, html:not(.full-motion) .session .hints li:last-child, html:not(.full-motion) .combo-chip,
+  html:not(.full-motion) .se-sun, html:not(.full-motion) .se-bee, html:not(.full-motion) .se-yawn, html:not(.full-motion) .se-firefly { animation: none; }
+  html:not(.full-motion) .se-firefly { opacity: .8; }
+  html:not(.full-motion) .journey-wrap .journey::after { transition: opacity .15s linear; }
+}

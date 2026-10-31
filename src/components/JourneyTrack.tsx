@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { useRef, type CSSProperties } from 'react';
 import { Sprite } from './art';
 import { THEMES, platformPositions, worldWidth, cameraOffset, storyBeat, type JourneyTheme } from '../activities/journey';
 import { useT } from '../i18n/useT';
@@ -37,9 +37,13 @@ function Hive() {
  * The session journey: the bee stands on the platform of the current question and hops to
  * the next one when a question is finished. Scenery layers slide at different speeds
  * (parallax) only during that hop, so nothing moves while the child is thinking.
+ *
+ * `combo` (a changing key, or null) marks a buzz-combo milestone: the bee loops the loop once
+ * and the track glows gold. The caller clears it after a fixed time — never because of a
+ * wrong answer — and the glow fades out softly.
  */
-export function JourneyTrack({ theme, index, total, marks, finished, name, onStoryTap, quiet, hat = null }: {
-  theme: JourneyTheme; index: number; total: number; marks: StepMark[]; finished?: boolean; name: string; onStoryTap?: (text: string) => void; quiet?: boolean; hat?: string | null;
+export function JourneyTrack({ theme, index, total, marks, finished, name, onStoryTap, quiet, hat = null, combo = null }: {
+  theme: JourneyTheme; index: number; total: number; marks: StepMark[]; finished?: boolean; name: string; onStoryTap?: (text: string) => void; quiet?: boolean; hat?: string | null; combo?: number | null;
 }) {
   const t = useT();
   const th = THEMES[theme];
@@ -53,6 +57,9 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
   const story = beat ? t(beat === 'intro' ? `journey.intro.${theme}` : 'journey.mid', { name, friend }) : null;
   const label = t('ui.journey', { n: Math.min(index + 1, total), total, friend });
   const threeD = use3D();
+  // the loop wrapper remounts (replaying the loop) only for a new milestone, not when it ends
+  const loopKey = useRef(0);
+  if (combo !== null) loopKey.current = combo;
   const vars = { '--sky1': th.sky[0], '--sky2': th.sky[1], '--far': th.far, '--mid': th.mid, '--near': th.near, '--ground': th.ground } as CSSProperties;
 
   const flat = (
@@ -72,7 +79,9 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
           <span className="jl-flag" aria-hidden>🏁</span>
         </span>
         <span className={`jl-bee ${finished ? 'arrived' : ''}`} style={{ left: `${bee.x * 100}%`, top: `${bee.y}%` }}>
-          <span key={at} className="jl-bee-inner"><Sprite id="bee" size="100%" decorative />{hat && <span className="bee-hat" aria-hidden>{hat}</span>}</span>
+          <span key={loopKey.current} className={combo !== null ? 'jl-bee-loop' : 'jl-bee-still'}>
+            <span key={at} className="jl-bee-inner"><Sprite id="bee" size="100%" decorative />{hat && <span className="bee-hat" aria-hidden>{hat}</span>}</span>
+          </span>
         </span>
       </div>
       <div className="jl jl-near" style={layerStyle(NEAR, world, cam)} aria-hidden />
@@ -80,7 +89,7 @@ export function JourneyTrack({ theme, index, total, marks, finished, name, onSto
   );
 
   return (
-    <div className="journey-wrap">
+    <div className={`journey-wrap ${combo !== null ? 'combo-gold' : ''}`} data-testid="journey-wrap">
       {threeD ? (
         <With3D flat={flat}>
           <Journey3D theme={theme} at={at} total={total} marks={marks} finished={finished} label={label} hat={hat} />

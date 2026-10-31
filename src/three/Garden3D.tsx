@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import type { CategoryId } from '../engine/types';
@@ -21,6 +21,9 @@ export interface Garden3DProps {
   hat?: string | null;
 }
 
+/** 30 fps is plenty for drifting clouds and halves the GPU work on phones. */
+const FRAME_MS = 1000 / 30;
+
 const ICON_3D = (icon: string) => (icon.startsWith('bird:') ? 'owl_keeper' : icon);
 
 /**
@@ -34,10 +37,13 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
   const labelRefs = useRef<Record<string, HTMLButtonElement | null>>({});
   const openRef = useRef(onOpen);
   openRef.current = onOpen;
+  // a lost WebGL context is thrown during render so With3D's boundary swaps in the flat map
+  const [lost, setLost] = useState(false);
+  if (lost) throw new Error('WebGL context lost');
 
   useEffect(() => {
     const el = wrap.current!;
-    const renderer = makeRenderer(canvas.current!);
+    const renderer = makeRenderer(canvas.current!, () => setLost(true));
     const scene = new THREE.Scene();
     scene.fog = new THREE.Fog(0xdff2fb, 60, 150);
     scene.add(skyDome('#9fd8f7', '#fff4d6'));
@@ -300,13 +306,18 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       });
     };
 
+    // at most 30 frames a second, and none while the garden is scrolled out of view or hidden
     let raf = 0;
     let running = true;
+    let visible = true;
+    let lastFrame = -Infinity;
     const clock = new THREE.Clock();
-    const loop = () => {
-      if (!running) return;
+    const loop = (now: number) => {
+      raf = 0;
+      if (!running || !visible) return;
       raf = requestAnimationFrame(loop);
-      if (document.hidden) return;
+      if (document.hidden || now - lastFrame < FRAME_MS - 2) return;
+      lastFrame = now;
       const t = clock.getElapsedTime();
       bee.position.set(Math.sin(t * 0.25) * 15, 6 + Math.sin(t * 1.3) * 0.5, Math.sin(t * 0.5) * 10);
       clouds.forEach((c, i) => { c.position.x += Math.sin(t * 0.05 + i) * 0.004; });
@@ -321,11 +332,19 @@ export default function Garden3D({ names, blooms, recommended, owned, onOpen, la
       renderer.render(scene, camera);
       if (dirty) { placeLabels(); dirty = false; el.dataset.drawCalls = String(renderer.info.render.calls); }
     };
-    loop();
+    const io = typeof IntersectionObserver === 'function'
+      ? new IntersectionObserver((entries) => {
+        visible = entries.some((e) => e.isIntersecting);
+        if (visible && !raf) raf = requestAnimationFrame(loop);
+      })
+      : null;
+    io?.observe(el);
+    raf = requestAnimationFrame(loop);
 
     return () => {
       running = false;
       cancelAnimationFrame(raf);
+      io?.disconnect();
       ro.disconnect();
       renderer.domElement.removeEventListener('pointerdown', onDown);
       renderer.domElement.removeEventListener('pointerup', onUp);

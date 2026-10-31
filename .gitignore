@@ -21,3 +21,13 @@ ChatGPT Image *.png
 
 # OS files
 .DS_Store
+
+# Android shell (android/): web bundle copied into the APK, Gradle output, local SDK path and signing secrets
+dist-android/
+android/.gradle/
+android/.kotlin/
+android/**/build/
+android/local.properties
+android/keystore.properties
+*.jks
+*.keystore

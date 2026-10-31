@@ -27,6 +27,30 @@ export const THEMES: Record<JourneyTheme, ThemeDef> = {
   garden: { platform: 'lily_pad', goal: 'svg:hive', sky: ['#c4e8fb', '#fff4d6'], far: '#bfe0a8', mid: '#86c46a', near: '#5f9f48', ground: '#a6d98a' },
 };
 
+/** Per-world accent (buttons, path, highlights) and ink (text on the world's sky). */
+export const WORLD_PALETTE: Record<JourneyTheme, { accent: string; ink: string }> = {
+  meadow: { accent: '#e86a92', ink: '#4a2b3a' },
+  river: { accent: '#2b8fbf', ink: '#16425b' },
+  orchard: { accent: '#d9412b', ink: '#5a2a12' },
+  ice: { accent: '#3d7bd9', ink: '#1d3c5e' },
+  trail: { accent: '#8a5a2b', ink: '#33402a' },
+  town: { accent: '#b5562a', ink: '#4d2f1a' },
+  garden: { accent: '#e7a92f', ink: '#3d2b1f' },
+};
+
+/**
+ * The CSS tokens of a world (`--world-sky`, `--world-ground`, `--world-accent`, …). The same
+ * values are set by `[data-world=<theme>]` in adventure.css (a unit test keeps them equal).
+ */
+export function worldVars(theme: JourneyTheme): Record<string, string> {
+  const th = THEMES[theme];
+  const pal = WORLD_PALETTE[theme];
+  return {
+    '--world-sky': th.sky[0], '--world-sky-2': th.sky[1], '--world-far': th.far, '--world-mid': th.mid,
+    '--world-near': th.near, '--world-ground': th.ground, '--world-accent': pal.accent, '--world-ink': pal.ink,
+  };
+}
+
 const BY_CATEGORY: Record<CategoryId, JourneyTheme> = {
   C01: 'meadow', C03: 'meadow', C07: 'meadow',
   C02: 'river', C05: 'river',

@@ -1,12 +1,26 @@
 import * as THREE from 'three';
 import { spriteUrl } from '../assets/manifest';
+import { markWebglLost, renderBudget } from './support';
 
 /** Shared 3D building blocks: renderer, sky, low-poly props and billboards made from the 2D art. */
 
-export function makeRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
-  const r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false, powerPreference: 'low-power' });
-  r.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+/**
+ * Renderer sized to the device: weaker phones get a lower pixel ratio and no antialiasing.
+ * `onLost` runs if the GPU drops the WebGL context (common on low-end Android); the caller
+ * then swaps to the flat 2D view instead of showing a blank canvas.
+ */
+export function makeRenderer(canvas: HTMLCanvasElement, onLost?: () => void): THREE.WebGLRenderer {
+  const { maxDpr, antialias } = renderBudget();
+  const r = new THREE.WebGLRenderer({ canvas, antialias, alpha: false, powerPreference: 'low-power' });
+  r.setPixelRatio(Math.min(window.devicePixelRatio || 1, maxDpr));
   r.outputColorSpace = THREE.SRGBColorSpace;
+  if (onLost) {
+    canvas.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      markWebglLost();
+      onLost();
+    }, { once: true });
+  }
   return r;
 }
 

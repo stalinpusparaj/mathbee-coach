@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { store, useProfile } from '../app/store';
-import { launch, restoreItem } from '../app/actions';
+import { launch, launchLevel, restoreItem } from '../app/actions';
 import { useT } from '../i18n/useT';
 import { CATEGORIES, CATEGORY_BY_ID, GARDEN_ITEMS, SUBSKILLS, ASSESSMENT_ORDER } from '../curriculum/curriculum';
 import { evaluateAll, categoryBloom, isSecure, STATE_RANK } from '../learning/mastery';
@@ -8,7 +8,10 @@ import { dueReviews } from '../learning/review';
 import { isUnlocked } from '../learning/planner';
 import { todayStr } from '../learning/dates';
 import { Sprite } from '../components/art';
-import { BackButton, BeeSays, HoldButton } from '../components/ui';
+import { BackButton, BeeSays } from '../components/ui';
+import { ParentEntry } from '../components/ParentGate';
+import { nextLevelId } from '../adventure/progress';
+import { LEVEL_BY_ID } from '../adventure/levels';
 import { hasSprite, spriteUrl, pickSprite } from '../assets/manifest';
 import { LevelBadge, RewardReveal, CountUp } from './RewardScreens';
 import { displayName } from '../learning/gamification';
@@ -47,6 +50,8 @@ export function GardenMapScreen() {
       : due > 0
         ? { label: t('ui.missionReview', { n: due }), go: () => launch('review'), id: 'review' }
         : { label: t('ui.missionDaily'), go: () => launch('daily'), id: 'daily' };
+  // the adventure path is the child's main way forward; practice missions stay one tap away
+  const nextLevel = profile.familiarised ? nextLevelId(profile, ev) : null;
   const recommendedCat = unscreened[0];
   const mapArt = { wide: spriteUrl('bg_map_wide'), tall: spriteUrl('bg_map_tall') };
 
@@ -100,7 +105,21 @@ export function GardenMapScreen() {
         <HatBee hat={currentHat(profile)} size={64} className="bee-idle" />
         <div>
           <p className="small">{t('ui.todaysMission')}</p>
-          <button type="button" className="btn primary big" onClick={mission.go} data-testid="mission">{mission.label}</button>
+          {nextLevel ? (
+            <button type="button" className="btn primary big" onClick={() => launchLevel(nextLevel)} data-testid="adventure-next">
+              🌼 {t('ui.nextAdventure', { title: t(LEVEL_BY_ID[nextLevel].titleKey) })}
+            </button>
+          ) : !profile.familiarised && (
+            <button type="button" className="btn primary big" onClick={mission.go} data-testid="mission">{mission.label}</button>
+          )}
+          <div className="row wrap mission-more">
+            <button type="button" className={`btn ${nextLevel || !profile.familiarised ? 'secondary' : 'primary'} adventure-tile`} onClick={() => store.setRoute({ name: 'adventure' })} data-testid="adventure-btn">
+              🗺️ {t('ui.adventureWorlds')}
+            </button>
+            {profile.familiarised && (
+              <button type="button" className="btn secondary" onClick={mission.go} data-testid="mission">{mission.label}</button>
+            )}
+          </div>
         </div>
       </section>
 
@@ -110,7 +129,6 @@ export function GardenMapScreen() {
       <nav className="quick-row" aria-label={t('ui.activities')}>
         <button type="button" className="btn secondary" onClick={() => launch('daily')} data-testid="daily">{t('ui.dailyPractice')}</button>
         <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'review-due' })} data-testid="review">{t('ui.review')} {due > 0 && <span className="count">{due}</span>}</button>
-        <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'tests' })} data-testid="tests">{t('ui.worksheetsTests')}</button>
         <button type="button" className="btn secondary" onClick={() => store.setRoute({ name: 'restore' })} data-testid="restore">{t('ui.restoreGarden')}</button>
       </nav>
 
@@ -149,7 +167,7 @@ export function GardenMapScreen() {
         ) : map2d
       )}
       <footer className="garden-foot">
-        <HoldButton label={t('ui.grownUps')} onDone={() => store.setRoute({ name: 'parent' })} testId="parent-hold" />
+        <ParentEntry />
       </footer>
     </div>
   );
