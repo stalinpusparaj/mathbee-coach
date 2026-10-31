@@ -136,7 +136,7 @@ label.check input { width: 26px; height: 26px; }
   position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px;
   background: rgba(255, 253, 248, 0.88); border: 3px solid var(--ink); border-radius: 16px; padding: 4px 6px; cursor: pointer; width: min(110px, 23%);
 }
-.location .loc-name { font-size: 0.85rem; font-weight: 800; line-height: 1.1; text-align: center; overflow-wrap: anywhere; hyphens: auto; }
+.location .loc-name { font-size: 0.85rem; font-weight: 800; line-height: 1.1; text-align: center; overflow-wrap: break-word; hyphens: manual; }
 .location.recommended { background: var(--honey); animation: pulse 2.4s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(247, 191, 53, 0.7); } 50% { box-shadow: 0 0 0 10px rgba(247, 191, 53, 0); } }
 .garden-item { position: absolute; transform: translate(-50%, -50%); pointer-events: none; }
@@ -481,7 +481,8 @@ td.status.not-assessed { color: var(--ink-soft); }
   .map { aspect-ratio: 10 / 17; }
   .location { width: 21%; padding: 3px 2px; border-width: 2px; border-radius: 12px; }
   .location img { width: 38px !important; height: 38px !important; }
-  .location .loc-name { font-size: 0.85rem; }
+  /* small enough that whole words fit the card: no "Sanctuar-y" breaks on narrow phones */
+  .location .loc-name { font-size: clamp(0.62rem, 2.9vw, 0.85rem); }
   .location .blooms { font-size: 0.7rem; }
 }
 
